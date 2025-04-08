@@ -10,6 +10,8 @@ import CreateBlogPage from './pages/CreateBlogPage'
 import BlogSuccessPage from './pages/BlogSuccessPage'
 import BlogDetailPage from './pages/BlogDetailPage'
 import SettingsPage from './pages/SettingsPage'
+import AboutPage from './pages/AboutPage'
+import ProfilePage from './pages/ProfilePage'
 import Navbar from './components/Navbar'
 import './App.css'
 
@@ -48,7 +50,7 @@ function App() {
           path="/verify" 
           element={<OtpVerificationPage setIsAuthenticated={setIsAuthenticated} />} 
         />
-        <Route path="/about" element={<div>AboutPage</div>} />
+        <Route path="/about" element={<AboutPage />} />
 
         {/* Protected Routes */}
         <Route 
@@ -66,7 +68,7 @@ function App() {
         <Route 
           path="/profile/:username" 
           element={
-            isAuthenticated ? <div>ProfilePage</div> : <Navigate to="/signin" />
+            isAuthenticated ? <ProfilePage /> : <Navigate to="/signin" />
           } 
         />
         <Route 
