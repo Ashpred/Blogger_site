@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import '../assets/styles/AuthPages.css';
+import axios from 'axios';
 
 const SignInPage = ({ setIsAuthenticated }) => {
   const [formData, setFormData] = useState({
@@ -27,21 +28,18 @@ const SignInPage = ({ setIsAuthenticated }) => {
     setError(null);
 
     try {
-      // In a real app, you would make an API call to your backend
-      // For now, we'll simulate a successful login
-      console.log('Login attempt with:', formData);
+      const response = await axios.post('/api/auth/signin', formData);
+      const { token, user } = response.data;
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock successful login
-      localStorage.setItem('token', 'mock-jwt-token');
-      localStorage.setItem('username', 'testuser');
+      // Store the authentication token and user data
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', user.username);
+      localStorage.setItem('userId', user._id);
       
       setIsAuthenticated(true);
       navigate('/main');
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -52,30 +50,8 @@ const SignInPage = ({ setIsAuthenticated }) => {
     setError(null);
     
     try {
-      console.log(`Initiating ${provider} login...`);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // In a real implementation, you would:
-      // 1. Redirect to OAuth provider (Google, Facebook, etc.)
-      // 2. Handle the OAuth callback with your backend
-      
-      // For now, we'll simulate a successful login
-      const userData = {
-        google: { name: 'Google User', email: 'google.user@example.com' },
-        facebook: { name: 'Facebook User', email: 'facebook.user@example.com' },
-        github: { name: 'GitHub User', email: 'github.user@example.com' }
-      };
-      
-      console.log(`Successful ${provider} login:`, userData[provider]);
-      
-      localStorage.setItem('token', `mock-jwt-token-${provider}`);
-      localStorage.setItem('username', userData[provider].name);
-      localStorage.setItem('provider', provider);
-      
-      setIsAuthenticated(true);
-      navigate('/main');
+      // Redirect to the social login endpoint
+      window.location.href = `/api/auth/${provider}`;
     } catch (err) {
       setError(`${provider} login failed. Please try again.`);
     } finally {
