@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "blog-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,11 +10,23 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.0.6",
+    "@react-three/fiber": "^9.1.2",
     "axios": "^1.8.4",
-    "prop-types": "^15.8.1",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "framer-motion": "^12.6.3",
+    "gsap": "^3.12.7",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2",
+    "nodemailer": "^6.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.4.0"
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.5.0",
+    "three": "^0.175.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -25,6 +37,6 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "vite": "^6.2.0"
+    "vite": "^6.2.5"
   }
 }

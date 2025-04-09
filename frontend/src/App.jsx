@@ -1,53 +1,106 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import Register from './components/Register';
-import Login from './components/Login';
-import Home from './components/Home';
-import './App.css';
+import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import HomePage from './pages/HomePage'
+import SignInPage from './pages/SignInPage'
+import SignUpPage from './pages/SignUpPage'
+import OtpVerificationPage from './pages/OtpVerificationPage'
+import CreateProfilePage from './pages/CreateProfilePage'
+import MainPage from './pages/MainPage'
+import CreateBlogPage from './pages/CreateBlogPage'
+import BlogSuccessPage from './pages/BlogSuccessPage'
+import BlogDetailPage from './pages/BlogDetailPage'
+import SettingsPage from './pages/SettingsPage'
+import AboutPage from './pages/AboutPage'
+import ProfilePage from './pages/ProfilePage'
+import Navbar from './components/Navbar'
+import './App.css'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Check for token in localStorage on app load
   useEffect(() => {
+    // Check if user is authenticated
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
-      const userData = JSON.parse(localStorage.getItem('user'));
-      setUser(userData);
     }
+    setLoading(false);
   }, []);
 
-  const login = (userData, token) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setIsAuthenticated(true);
-    setUser(userData);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
-  };
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
 
   return (
     <Router>
-      <div className="app">
-        <Navbar isAuthenticated={isAuthenticated} logout={logout} user={user} />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home isAuthenticated={isAuthenticated} user={user} />} />
-            <Route path="/register" element={<Register login={login} isAuthenticated={isAuthenticated} />} />
-            <Route path="/login" element={<Login login={login} isAuthenticated={isAuthenticated} />} />
-          </Routes>
-        </main>
-      </div>
+      <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route 
+          path="/signin" 
+          element={isAuthenticated ? <Navigate to="/main" /> : <SignInPage setIsAuthenticated={setIsAuthenticated} />} 
+        />
+        <Route 
+          path="/signup" 
+          element={isAuthenticated ? <Navigate to="/main" /> : <SignUpPage />} 
+        />
+        <Route path="/about" element={<AboutPage />} />
+
+        {/* Protected Routes */}
+        <Route 
+          path="/create-profile" 
+          element={
+            isAuthenticated ? <CreateProfilePage /> : <Navigate to="/signin" />
+          } 
+        />
+        {/* Verification route - kept for future implementation */}
+        <Route 
+          path="/verify" 
+          element={
+            isAuthenticated ? <OtpVerificationPage setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/signin" />
+          } 
+        />
+        <Route 
+          path="/main" 
+          element={
+            isAuthenticated ? <MainPage /> : <Navigate to="/signin" />
+          } 
+        />
+        <Route 
+          path="/profile/:username" 
+          element={
+            isAuthenticated ? <ProfilePage /> : <Navigate to="/signin" />
+          } 
+        />
+        <Route 
+          path="/create-blog" 
+          element={
+            isAuthenticated ? <CreateBlogPage /> : <Navigate to="/signin" />
+          } 
+        />
+        <Route 
+          path="/blog-success" 
+          element={
+            isAuthenticated ? <BlogSuccessPage /> : <Navigate to="/signin" />
+          } 
+        />
+        <Route 
+          path="/blog/:blogId" 
+          element={
+            isAuthenticated ? <BlogDetailPage /> : <Navigate to="/signin" />
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            isAuthenticated ? <SettingsPage /> : <Navigate to="/signin" />
+          } 
+        />
+      </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
