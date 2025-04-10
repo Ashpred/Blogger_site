@@ -309,51 +309,52 @@
 }
 
 /* OTP Verification Styles */
-.otp-inputs {
+.otp-input-group {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 30px;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
 }
 
 .otp-input {
-  width: 60px;
-  height: 60px;
-  font-size: 1.5rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
   text-align: center;
-  margin: 0 5px;
+  font-size: 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
 }
 
 .otp-input:focus {
-  border-color: #6a11cb;
-  box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.2);
+  border-color: #3b82f6;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.resend-timer {
+.resend-otp {
   text-align: center;
-  margin-top: 15px;
-  color: #666;
+  margin-top: 20px;
 }
 
 .resend-button {
   background: none;
   border: none;
-  color: #6a11cb;
+  color: #3b82f6;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.3s;
-}
-
-.resend-button:hover {
-  text-decoration: underline;
+  padding: 0;
+  font-size: inherit;
 }
 
 .resend-button:disabled {
-  color: #aaa;
+  color: #94a3b8;
   cursor: not-allowed;
-  text-decoration: none;
+}
+
+.resend-button:hover:not(:disabled) {
+  text-decoration: underline;
 }
 
 /* Profile Creation Styles */

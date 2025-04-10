@@ -1,160 +1,130 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
+import axios from '../config/axios';
+import { useAuth } from '../context/AuthContext';
 import '../assets/styles/MainPage.css';
-
-// Mock data for blogs
-const mockBlogs = [
-  {
-    id: 1,
-    title: 'Getting Started with React and Three.js',
-    excerpt: 'Learn how to create stunning 3D visualizations on the web using React and Three.js...',
-    coverImage: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-    author: {
-      id: 101,
-      username: 'techguru',
-      profilePicture: 'https://randomuser.me/api/portraits/men/32.jpg',
-      fullName: 'Alex Johnson'
-    },
-    createdAt: '2023-04-15T10:30:00.000Z',
-    likes: 124,
-    comments: 18,
-    shares: 34,
-    tags: ['react', 'threejs', 'webdev']
-  },
-  {
-    id: 2,
-    title: 'Modern CSS Techniques Every Developer Should Know',
-    excerpt: 'Explore the latest CSS features and techniques that will transform your web designs...',
-    coverImage: 'https://images.unsplash.com/photo-1621839673705-6617adf9e890?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80',
-    author: {
-      id: 102,
-      username: 'designmaster',
-      profilePicture: 'https://randomuser.me/api/portraits/women/44.jpg',
-      fullName: 'Sarah Williams'
-    },
-    createdAt: '2023-04-14T14:45:00.000Z',
-    likes: 89,
-    comments: 12,
-    shares: 21,
-    tags: ['css', 'webdesign', 'frontend']
-  },
-  {
-    id: 3,
-    title: 'Building a Scalable Backend with Node.js and MongoDB',
-    excerpt: 'Discover best practices for building robust and scalable backend services...',
-    coverImage: 'https://images.unsplash.com/photo-1618477247222-acbdb0e159b3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-    author: {
-      id: 103,
-      username: 'codemaster',
-      profilePicture: 'https://randomuser.me/api/portraits/men/22.jpg',
-      fullName: 'Mike Chen'
-    },
-    createdAt: '2023-04-12T09:15:00.000Z',
-    likes: 156,
-    comments: 24,
-    shares: 42,
-    tags: ['nodejs', 'mongodb', 'backend']
-  },
-  {
-    id: 4,
-    title: 'The Future of Web Development: What to Learn in 2023',
-    excerpt: 'Stay ahead of the curve by learning these technologies and skills...',
-    coverImage: 'https://images.unsplash.com/photo-1607706189992-eae578626c86?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
-    author: {
-      id: 104,
-      username: 'futurist',
-      profilePicture: 'https://randomuser.me/api/portraits/women/28.jpg',
-      fullName: 'Emma Rodriguez'
-    },
-    createdAt: '2023-04-10T16:20:00.000Z',
-    likes: 213,
-    comments: 31,
-    shares: 59,
-    tags: ['webdev', 'career', 'technology']
-  }
-];
+import BlogMetrics from '../components/BlogMetrics';
 
 // Blog Card Component
 const BlogCard = ({ blog }) => {
-  const [liked, setLiked] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [likeCount, setLikeCount] = useState(blog.likes?.length || 0);
+  
+  useEffect(() => {
+    // Check if the current user has liked this blog
+    if (user && blog.likes && Array.isArray(blog.likes)) {
+      setIsLiked(blog.likes.includes(user.id));
+    }
+    
+    setLikeCount(blog.likes?.length || 0);
+  }, [blog.likes, user]);
   
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-
-  const handleLike = (e) => {
+  
+  const handleLike = async (e) => {
     e.preventDefault();
-    setLiked(!liked);
-  };
-
-  const cardVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { type: 'spring', stiffness: 100, damping: 15 }
-    },
-    hover: { 
-      y: -10,
-      transition: { type: 'spring', stiffness: 400, damping: 10 }
+    e.stopPropagation();
+    
+    try {
+      const response = await axios.put(`/api/blogs/like/${blog._id}`);
+      if (response.data && response.data.data) {
+        setIsLiked(!isLiked);
+        setLikeCount(response.data.data.likes.length);
+      }
+    } catch (err) {
+      console.error('Error liking blog:', err);
     }
   };
+  
+  const handleBookmark = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsBookmarked(!isBookmarked);
+    // Implement bookmark API call here
+  };
+  
+  const handleComment = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/blog/${blog._id}`);
+  };
+  
+  const handleShare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(window.location.origin + `/blog/${blog._id}`);
+    alert('Link copied to clipboard!');
+  };
+
+  const truncateText = (text, maxLength) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substr(0, maxLength) + '...';
+  };
+
+  // Extract plain text from HTML content if needed
+  const extractPlainText = (htmlString) => {
+    if (!htmlString) return '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlString;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
+  const excerpt = truncateText(extractPlainText(blog.content), 150);
 
   return (
     <motion.div 
       className="blog-card"
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      whileHover="hover"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <Link to={`/blog/${blog.id}`} className="blog-card-link">
+      <Link to={`/blog/${blog._id}`} className="blog-card-link">
         <div className="blog-card-image">
-          <img src={blog.coverImage} alt={blog.title} />
+          <img src={blog.coverImage || '/default-blog-cover.jpg'} alt={blog.title} />
+          <div className="blog-card-tags">
+            {blog.tags && blog.tags.map((tag, index) => (
+              <span key={index} className="blog-tag">{tag}</span>
+            ))}
+          </div>
         </div>
         
         <div className="blog-card-content">
-          <div className="blog-card-tags">
-            {blog.tags.map((tag, index) => (
-              <span key={index} className="blog-tag">#{tag}</span>
-            ))}
+          <div className="blog-card-author">
+            <img 
+              src={blog.author.profilePicture || '/default-profile.jpg'} 
+              alt={blog.author.username} 
+              className="author-image"
+            />
+            <div className="author-info">
+              <h4 className="author-name">{blog.author.fullName || blog.author.username}</h4>
+              <p className="blog-date">{formatDate(blog.createdAt)}</p>
+            </div>
           </div>
           
           <h3 className="blog-card-title">{blog.title}</h3>
-          <p className="blog-card-excerpt">{blog.excerpt}</p>
-          
-          <div className="blog-card-author">
-            <img src={blog.author.profilePicture} alt={blog.author.fullName} />
-            <div>
-              <p className="author-name">{blog.author.fullName}</p>
-              <p className="publish-date">{formatDate(blog.createdAt)}</p>
-            </div>
-          </div>
-          
-          <div className="blog-card-metrics">
-            <button 
-              className={`metric-button ${liked ? 'liked' : ''}`}
-              onClick={handleLike}
-            >
-              <i className={`fas fa-heart ${liked ? 'liked' : ''}`}></i>
-              <span>{liked ? blog.likes + 1 : blog.likes}</span>
-            </button>
-            
-            <div className="metric">
-              <i className="fas fa-comment"></i>
-              <span>{blog.comments}</span>
-            </div>
-            
-            <div className="metric">
-              <i className="fas fa-share"></i>
-              <span>{blog.shares}</span>
-            </div>
-          </div>
+          <p className="blog-card-excerpt">{excerpt}</p>
         </div>
       </Link>
+      
+      <BlogMetrics 
+        likes={likeCount}
+        comments={blog.comments?.length || 0}
+        shares={blog.shares || 0}
+        isLiked={isLiked}
+        isBookmarked={isBookmarked}
+        onLike={handleLike}
+        onComment={handleComment}
+        onShare={handleShare}
+        onBookmark={handleBookmark}
+      />
     </motion.div>
   );
 };
@@ -163,20 +133,53 @@ const BlogCard = ({ blog }) => {
 const MainPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [tags, setTags] = useState([]);
+  const [topAuthors, setTopAuthors] = useState([]);
+  const { user } = useAuth();
   
   useEffect(() => {
-    // In a real app, you would fetch blogs from an API
-    // For now, we'll use the mock data
+    // Fetch blogs from the API
     const fetchBlogs = async () => {
+      setLoading(true);
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setBlogs(mockBlogs);
-        setLoading(false);
+        const response = await axios.get('/api/blogs');
+        if (response.data && response.data.data) {
+          setBlogs(response.data.data);
+          
+          // Extract all unique tags from blogs
+          const allTags = response.data.data.flatMap(blog => blog.tags || []);
+          const uniqueTags = [...new Set(allTags)];
+          setTags(uniqueTags);
+          
+          // Create a list of top authors based on blog count
+          const authorCounts = {};
+          response.data.data.forEach(blog => {
+            if (blog.author && blog.author._id) {
+              if (!authorCounts[blog.author._id]) {
+                authorCounts[blog.author._id] = {
+                  count: 0,
+                  author: blog.author
+                };
+              }
+              authorCounts[blog.author._id].count += 1;
+            }
+          });
+          
+          // Convert to array and sort by count
+          const authors = Object.values(authorCounts)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5) // Take top 5 authors
+            .map(item => item.author);
+          
+          setTopAuthors(authors);
+        }
       } catch (error) {
         console.error('Error fetching blogs:', error);
+        setError('Failed to load blogs. Please try again later.');
+      } finally {
         setLoading(false);
       }
     };
@@ -192,43 +195,49 @@ const MainPage = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Filter and search blogs
-  const filteredBlogs = blogs.filter(blog => {
-    // Filter logic
-    if (filter !== 'all' && !blog.tags.includes(filter)) {
-      return false;
-    }
+  // Filter blogs based on selected filter and search query
+  const getFilteredBlogs = () => {
+    let filteredResults = [...blogs];
     
-    // Search logic
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        blog.title.toLowerCase().includes(query) ||
-        blog.excerpt.toLowerCase().includes(query) ||
-        blog.author.fullName.toLowerCase().includes(query) ||
-        blog.tags.some(tag => tag.toLowerCase().includes(query))
+    // Apply tag filter
+    if (filter !== 'all') {
+      filteredResults = filteredResults.filter(blog => 
+        blog.tags && blog.tags.some(tag => 
+          tag.toLowerCase() === filter.toLowerCase()
+        )
       );
     }
     
-    return true;
-  });
+    // Apply search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filteredResults = filteredResults.filter(blog => 
+        blog.title.toLowerCase().includes(query) || 
+        (blog.content && blog.content.toLowerCase().includes(query)) ||
+        (blog.tags && blog.tags.some(tag => tag.toLowerCase().includes(query)))
+      );
+    }
+    
+    return filteredResults;
+  };
 
+  const filteredBlogs = getFilteredBlogs();
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { 
-        when: "beforeChildren",
-        staggerChildren: 0.1
+        staggerChildren: 0.1 
       }
     }
   };
 
   return (
     <div className="main-page">
-      <Navbar isAuthenticated={true} />
-      
       <div className="main-content">
+        {/* Left Sidebar */}
         <div className="sidebar">
           <div className="sidebar-section">
             <h3>Explore</h3>
@@ -239,40 +248,30 @@ const MainPage = () => {
                   <span>All Posts</span>
                 </button>
               </li>
-              <li className={filter === 'webdev' ? 'active' : ''}>
-                <button onClick={() => handleFilterChange('webdev')}>
-                  <i className="fas fa-laptop-code"></i>
-                  <span>Web Development</span>
-                </button>
-              </li>
-              <li className={filter === 'frontend' ? 'active' : ''}>
-                <button onClick={() => handleFilterChange('frontend')}>
-                  <i className="fas fa-palette"></i>
-                  <span>Frontend</span>
-                </button>
-              </li>
-              <li className={filter === 'backend' ? 'active' : ''}>
-                <button onClick={() => handleFilterChange('backend')}>
-                  <i className="fas fa-server"></i>
-                  <span>Backend</span>
-                </button>
-              </li>
-              <li className={filter === 'design' ? 'active' : ''}>
-                <button onClick={() => handleFilterChange('design')}>
-                  <i className="fas fa-pencil-ruler"></i>
-                  <span>Design</span>
-                </button>
-              </li>
+              {tags.slice(0, 8).map((tag, index) => (
+                <li key={index} className={filter === tag ? 'active' : ''}>
+                  <button onClick={() => handleFilterChange(tag)}>
+                    <i className="fas fa-hashtag"></i>
+                    <span>{tag}</span>
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
           
           <div className="sidebar-section">
-            <h3>Settings</h3>
+            <h3>Account</h3>
             <ul className="sidebar-menu">
               <li>
-                <Link to="/profile/testuser">
+                <Link to={`/profile/${user?.username}`}>
                   <i className="fas fa-user"></i>
-                  <span>Profile</span>
+                  <span>My Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/create-blog">
+                  <i className="fas fa-pencil-alt"></i>
+                  <span>Create Blog</span>
                 </Link>
               </li>
               <li>
@@ -281,47 +280,79 @@ const MainPage = () => {
                   <span>Settings</span>
                 </Link>
               </li>
-              <li>
-                <button className="logout-btn">
-                  <i className="fas fa-sign-out-alt"></i>
-                  <span>Logout</span>
-                </button>
-              </li>
             </ul>
           </div>
         </div>
         
+        {/* Content Area */}
         <div className="content-area">
-          <div className="content-header">
-            <h2>Your Feed</h2>
-            <div className="search-bar">
+          <div className="search-container">
+            <div className="search-input-container">
               <i className="fas fa-search"></i>
               <input 
-                type="text" 
-                placeholder="Search posts..."
+                type="text"
+                placeholder="Search blogs, tags, or authors..."
                 value={searchQuery}
                 onChange={handleSearchChange}
+                className="search-input"
               />
+              {searchQuery && (
+                <button 
+                  className="clear-search"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
             </div>
-          </div>
-          
-          <div className="create-post-button">
-            <Link to="/create-blog" className="create-button">
-              <i className="fas fa-plus"></i>
-              <span>Create New Post</span>
-            </Link>
+            
+            <div className="filter-tags">
+              {filter !== 'all' && (
+                <div className="active-filter">
+                  <span>{filter}</span>
+                  <button onClick={() => handleFilterChange('all')}>
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           
           {loading ? (
-            <div className="loading-state">
+            <div className="loading-container">
               <div className="spinner"></div>
               <p>Loading blogs...</p>
             </div>
+          ) : error ? (
+            <div className="error-container">
+              <i className="fas fa-exclamation-circle"></i>
+              <p>{error}</p>
+              <button onClick={() => window.location.reload()}>
+                Try Again
+              </button>
+            </div>
           ) : filteredBlogs.length === 0 ? (
-            <div className="empty-state">
+            <div className="no-results">
               <i className="fas fa-search"></i>
               <h3>No blogs found</h3>
-              <p>Try changing your search or filter criteria</p>
+              <p>
+                {filter !== 'all' 
+                  ? `No blogs found with the tag "${filter}".` 
+                  : searchQuery 
+                    ? `No blogs match your search "${searchQuery}".`
+                    : 'No blogs have been published yet.'}
+              </p>
+              {(filter !== 'all' || searchQuery) && (
+                <button 
+                  className="reset-filters"
+                  onClick={() => {
+                    setFilter('all');
+                    setSearchQuery('');
+                  }}
+                >
+                  Clear all filters
+                </button>
+              )}
             </div>
           ) : (
             <motion.div 
@@ -331,38 +362,47 @@ const MainPage = () => {
               animate="visible"
             >
               {filteredBlogs.map(blog => (
-                <BlogCard key={blog.id} blog={blog} />
+                <BlogCard key={blog._id} blog={blog} />
               ))}
             </motion.div>
           )}
         </div>
         
+        {/* Right Sidebar */}
         <div className="trending-sidebar">
           <div className="trending-section">
             <h3>Top Authors</h3>
             <ul className="trending-authors">
-              {mockBlogs.map(blog => (
-                <li key={blog.author.id}>
-                  <Link to={`/profile/${blog.author.username}`}>
-                    <img src={blog.author.profilePicture} alt={blog.author.fullName} />
+              {topAuthors.map(author => (
+                <li key={author._id}>
+                  <Link to={`/profile/${author.username}`}>
+                    <img src={author.profilePicture || '/default-profile.jpg'} alt={author.fullName || author.username} />
                     <div>
-                      <p className="author-name">{blog.author.fullName}</p>
-                      <p className="author-username">@{blog.author.username}</p>
+                      <p className="author-name">{author.fullName || author.username}</p>
+                      <p className="author-username">@{author.username}</p>
                     </div>
                   </Link>
                 </li>
               ))}
+              {topAuthors.length === 0 && (
+                <li className="no-authors">
+                  <p>No authors found</p>
+                </li>
+              )}
             </ul>
           </div>
           
           <div className="trending-section">
             <h3>Popular Tags</h3>
             <div className="trending-tags">
-              {Array.from(new Set(mockBlogs.flatMap(blog => blog.tags))).map((tag, index) => (
+              {tags.map((tag, index) => (
                 <button key={index} onClick={() => handleFilterChange(tag)}>
                   #{tag}
                 </button>
               ))}
+              {tags.length === 0 && (
+                <p className="no-tags">No tags found</p>
+              )}
             </div>
           </div>
         </div>

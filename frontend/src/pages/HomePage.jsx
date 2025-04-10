@@ -4,6 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { MeshDistortMaterial, Sphere, OrbitControls, Text } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
 import '../assets/styles/HomePage.css';
 
 // Animated 3D sphere component
@@ -98,8 +99,8 @@ const PopularBlogCard = ({ blog, isActive }) => {
 };
 
 const HomePage = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentBlogIndex, setCurrentBlogIndex] = useState(0);
+  const { user } = useAuth();
   
   // Sample popular blogs data (replace with actual API call)
   const popularBlogs = [
@@ -171,7 +172,7 @@ const HomePage = () => {
 
   return (
     <div className="home-page">
-      <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+      <Navbar />
       
       {/* Hero Section with WebGL Animation */}
       <section className="hero-section">
@@ -184,26 +185,51 @@ const HomePage = () => {
           >
             <h1>Share Your Stories with the World</h1>
             <p>A modern blogging platform with stunning visuals and seamless experience</p>
-            <div className="hero-buttons">
-              <Link to="/signup">
-                <motion.button 
-                  className="primary-button"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Get Started
-                </motion.button>
-              </Link>
-              <Link to="/signin">
-                <motion.button 
-                  className="secondary-button"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Sign In
-                </motion.button>
-              </Link>
-            </div>
+            
+            {/* Conditionally render buttons based on authentication status */}
+            {!user ? (
+              <div className="hero-buttons">
+                <Link to="/signup">
+                  <motion.button 
+                    className="primary-button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Get Started
+                  </motion.button>
+                </Link>
+                <Link to="/signin">
+                  <motion.button 
+                    className="secondary-button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Sign In
+                  </motion.button>
+                </Link>
+              </div>
+            ) : (
+              <div className="hero-buttons">
+                <Link to="/main">
+                  <motion.button 
+                    className="primary-button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Explore Blogs
+                  </motion.button>
+                </Link>
+                <Link to="/create-blog">
+                  <motion.button 
+                    className="secondary-button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Create Blog
+                  </motion.button>
+                </Link>
+              </div>
+            )}
           </motion.div>
         </div>
         

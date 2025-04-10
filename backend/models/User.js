@@ -33,14 +33,6 @@ const UserSchema = new mongoose.Schema({
     default: '',
     maxlength: 500
   },
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-  verificationToken: String,
-  verificationTokenExpire: Date,
-  resetPasswordToken: String,
-  resetPasswordExpire: Date,
   subscribers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -59,6 +51,7 @@ UserSchema.pre('save', async function(next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
 // Match user entered password to hashed password in database
