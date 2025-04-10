@@ -1,19 +1,18 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
+import axios from '../config/axios';
+import { useAuth } from '../context/AuthContext';
 import '../assets/styles/AuthPages.css';
-import axios from 'axios';
 
-const SignInPage = ({ setIsAuthenticated }) => {
+const SignInPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -28,197 +27,66 @@ const SignInPage = ({ setIsAuthenticated }) => {
     setError(null);
 
     try {
-      const response = await axios.post('/api/auth/signin', formData);
-      const { token, user } = response.data;
+      const response = await axios.post('/api/auth/login', formData);
       
-      // Store the authentication token and user data
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', user.username);
-      localStorage.setItem('userId', user._id);
-      
-      setIsAuthenticated(true);
-      navigate('/main');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      // Check for token in response
+      if (response.data.token) {
+        // Store token and user data in localStorage
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.user.id);
+        localStorage.setItem('username', response.data.user.username);
+        
+        // Update auth context with user data
+        login(response.data.user);
+        
+        // Navigate to main page
+        navigate('/main');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider) => {
-    setSocialLoading(provider);
-    setError(null);
-    
-    try {
-      // Redirect to the social login endpoint
-      window.location.href = `/api/auth/${provider}`;
-    } catch (err) {
-      setError(`${provider} login failed. Please try again.`);
-    } finally {
-      setSocialLoading('');
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { duration: 0.5 }
-    },
-    exit: { opacity: 0 }
-  };
-
-  const formVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { delay: 0.2, duration: 0.5 }
-    }
-  };
-
   return (
-    <motion.div 
-      className="auth-page"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-    >
-      <Navbar />
-      
-      <div className="auth-container">
-        <motion.div 
-          className="auth-card"
-          variants={formVariants}
-        >
-          <div className="auth-header">
-            <h2>Welcome Back!</h2>
-            <p>Sign in to continue to your account</p>
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2>Sign In</h2>
+        {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
           </div>
-          
-          {error && <div className="auth-error">{error}</div>}
-          
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                placeholder="Enter your email"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                placeholder="Enter your password"
-              />
-            </div>
-            
-            <div className="form-group-remember">
-              <div className="remember-me">
-                <input type="checkbox" id="remember" />
-                <label htmlFor="remember">Remember me</label>
-              </div>
-              <Link to="/forgot-password" className="forgot-password">
-                Forgot Password?
-              </Link>
-            </div>
-            
-            <button 
-              type="submit" 
-              className="auth-button"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <span className="spinner-small"></span>
-                  Signing in...
-                </>
-              ) : 'Sign In'}
-            </button>
-            
-            <div className="auth-divider">
-              <span>OR</span>
-            </div>
-            
-            <div className="social-signin">
-              <button 
-                type="button" 
-                className="social-button google"
-                onClick={() => handleSocialLogin('google')}
-                disabled={socialLoading !== ''}
-              >
-                {socialLoading === 'google' ? (
-                  <>
-                    <span className="spinner-small"></span>
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fab fa-google"></i>
-                    Sign in with Google
-                  </>
-                )}
-              </button>
-              <button 
-                type="button" 
-                className="social-button facebook"
-                onClick={() => handleSocialLogin('facebook')}
-                disabled={socialLoading !== ''}
-              >
-                {socialLoading === 'facebook' ? (
-                  <>
-                    <span className="spinner-small"></span>
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fab fa-facebook-f"></i>
-                    Sign in with Facebook
-                  </>
-                )}
-              </button>
-              <button 
-                type="button" 
-                className="social-button github"
-                onClick={() => handleSocialLogin('github')}
-                disabled={socialLoading !== ''}
-              >
-                {socialLoading === 'github' ? (
-                  <>
-                    <span className="spinner-small"></span>
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fab fa-github"></i>
-                    Sign in with GitHub
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-          
-          <div className="auth-footer">
-            <p>
-              Don't have an account? <Link to="/signup">Sign Up</Link>
-            </p>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
           </div>
-        </motion.div>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+        <p className="auth-link">
+          Don't have an account? <Link to="/signup">Sign Up</Link>
+        </p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

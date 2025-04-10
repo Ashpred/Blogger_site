@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import HomePage from './pages/HomePage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
-import OtpVerificationPage from './pages/OtpVerificationPage'
 import CreateProfilePage from './pages/CreateProfilePage'
 import MainPage from './pages/MainPage'
 import CreateBlogPage from './pages/CreateBlogPage'
@@ -15,18 +14,8 @@ import ProfilePage from './pages/ProfilePage'
 import Navbar from './components/Navbar'
 import './App.css'
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-    setLoading(false);
-  }, []);
+function AppRoutes() {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -34,73 +23,65 @@ function App() {
 
   return (
     <Router>
-      <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+      <Navbar />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route 
           path="/signin" 
-          element={isAuthenticated ? <Navigate to="/main" /> : <SignInPage setIsAuthenticated={setIsAuthenticated} />} 
+          element={user ? <Navigate to="/main" /> : <SignInPage />} 
         />
         <Route 
           path="/signup" 
-          element={isAuthenticated ? <Navigate to="/main" /> : <SignUpPage />} 
+          element={user ? <Navigate to="/main" /> : <SignUpPage />} 
         />
         <Route path="/about" element={<AboutPage />} />
 
         {/* Protected Routes */}
         <Route 
           path="/create-profile" 
-          element={
-            isAuthenticated ? <CreateProfilePage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <CreateProfilePage /> : <Navigate to="/signin" />} 
         />
-        {/* Verification route - kept for future implementation */}
+        {/* Redirect verify route to main */}
         <Route 
           path="/verify" 
-          element={
-            isAuthenticated ? <OtpVerificationPage setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/signin" />
-          } 
+          element={<Navigate to="/main" />} 
         />
         <Route 
           path="/main" 
-          element={
-            isAuthenticated ? <MainPage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <MainPage /> : <Navigate to="/signin" />} 
         />
         <Route 
           path="/profile/:username" 
-          element={
-            isAuthenticated ? <ProfilePage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <ProfilePage /> : <Navigate to="/signin" />} 
         />
         <Route 
           path="/create-blog" 
-          element={
-            isAuthenticated ? <CreateBlogPage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <CreateBlogPage /> : <Navigate to="/signin" />} 
         />
         <Route 
           path="/blog-success" 
-          element={
-            isAuthenticated ? <BlogSuccessPage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <BlogSuccessPage /> : <Navigate to="/signin" />} 
         />
         <Route 
           path="/blog/:blogId" 
-          element={
-            isAuthenticated ? <BlogDetailPage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <BlogDetailPage /> : <Navigate to="/signin" />} 
         />
         <Route 
           path="/settings" 
-          element={
-            isAuthenticated ? <SettingsPage /> : <Navigate to="/signin" />
-          } 
+          element={user ? <SettingsPage /> : <Navigate to="/signin" />} 
         />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+}
+
+export default App;

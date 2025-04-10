@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import LogoutButton from './LogoutButton';
 import '../assets/styles/Navbar.css';
 
-const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
+const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,12 +26,6 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    navigate('/');
-  };
 
   const navVariants = {
     hidden: { opacity: 0, y: -50 },
@@ -51,6 +49,10 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
     tap: { scale: 0.95 }
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <motion.nav 
       className={`navbar ${scrolled ? 'scrolled' : ''}`}
@@ -69,10 +71,28 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
           </motion.div>
         </Link>
 
-        <div className="navbar-links">
-          {!isAuthenticated ? (
+        {/* Mobile menu button */}
+        <button 
+          className="mobile-menu-button"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle navigation menu"
+        >
+          <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+        </button>
+
+        <div className={`navbar-links ${mobileMenuOpen ? 'active' : ''}`}>
+          <Link to="/about" className="navbar-link">About Us</Link>
+          
+          {user ? (
             <>
-              <Link to="/about" className="navbar-link">About Us</Link>
+              <Link to="/main" className="navbar-link">Feed</Link>
+              <Link to="/create-blog" className="navbar-link">Create Blog</Link>
+              <Link to={`/profile/${user.username}`} className="navbar-link">Profile</Link>
+              <Link to="/settings" className="navbar-link">Settings</Link>
+              <LogoutButton />
+            </>
+          ) : (
+            <>
               <Link to="/signin">
                 <motion.button 
                   className="signin-button"
@@ -83,23 +103,16 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
                   Sign In
                 </motion.button>
               </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/about" className="navbar-link">About Us</Link>
-              <Link to="/create-blog" className="navbar-link">Create Blog</Link>
-              <Link to="/main" className="navbar-link">Feed</Link>
-              <Link to={`/profile/${localStorage.getItem('username')}`} className="navbar-link">Profile</Link>
-              <Link to="/settings" className="navbar-link">Settings</Link>
-              <motion.button 
-                className="logout-button"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                onClick={handleLogout}
-              >
-                Logout
-              </motion.button>
+              <Link to="/signup">
+                <motion.button 
+                  className="signin-button primary"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Sign Up
+                </motion.button>
+              </Link>
             </>
           )}
         </div>

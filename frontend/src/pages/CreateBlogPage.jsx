@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from '../config/axios';
 import '../assets/styles/CreateBlogPage.css';
 
 const CreateBlogPage = () => {
@@ -82,7 +83,7 @@ const CreateBlogPage = () => {
       newErrors.tags = 'At least one tag is required';
     }
     
-    if (!formData.coverImage) {
+    if (!formData.coverImage && !preview) {
       newErrors.coverImage = 'Cover image is required';
     }
     
@@ -100,39 +101,43 @@ const CreateBlogPage = () => {
     setIsSubmitting(true);
     
     try {
-      // Create form data for sending the image
-      const formDataToSend = new FormData();
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('content', formData.content);
-      formDataToSend.append('tags', formData.tags);
-      formDataToSend.append('coverImage', formData.coverImage);
+      // Convert tags string to array
+      const tagsArray = formData.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag !== '');
       
-      // This is where we would make the API call
-      // For now, let's simulate an API call with a timeout
-      setTimeout(() => {
-        console.log('Blog post created successfully:', formDataToSend);
-        setIsSubmitting(false);
-        navigate('/blog-success');
-      }, 2000);
+      // Use regular JSON for the API request - no FormData needed
+      // The backend controller extracts data from req.body
+      const blogData = {
+        title: formData.title,
+        content: formData.content,
+        tags: tagsArray,
+        coverImage: preview ? preview : 'default-blog-cover.jpg' // Use the data URL as cover image
+      };
       
-      // Actual API call would look like this:
-      // const response = await fetch('/api/blogs', {
-      //   method: 'POST',
-      //   body: formDataToSend,
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('Failed to create blog post');
-      // }
-      // 
-      // const data = await response.json();
-      // navigate(`/blog/${data.blog._id}`);
+      // Send the API request with standard JSON
+      const response = await axios.post('/api/blogs', blogData);
       
+      if (response.data && response.data.data) {
+        // Blog was created successfully
+        const blogId = response.data.data._id;
+        // Navigate to the blog page
+        navigate(`/blog/${blogId}`);
+      } else {
+        throw new Error('Failed to create blog post');
+      }
     } catch (error) {
       console.error('Error creating blog post:', error);
       setIsSubmitting(false);
+      
+      // Show a more detailed error if available
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          'Failed to create blog post. Please try again.';
+      
       setErrors({
-        submit: 'Failed to create blog post. Please try again.',
+        submit: errorMessage
       });
     }
   };
@@ -228,7 +233,7 @@ const CreateBlogPage = () => {
             <button 
               type="button" 
               className="cancel-button"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/main')}
             >
               Cancel
             </button>
