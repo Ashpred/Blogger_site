@@ -8,6 +8,7 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const blogRoutes = require('./routes/blogs');
 const userRoutes = require('./routes/users');
+const uploadRoutes = require('./routes/upload');
 
 // Config
 dotenv.config();
@@ -43,6 +44,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/api/auth', authRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {

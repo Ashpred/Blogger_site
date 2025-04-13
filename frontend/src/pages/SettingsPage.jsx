@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import '../assets/styles/SettingsPage.css';
+import { uploadProfilePicture } from '../utils/imageUpload';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -95,15 +96,31 @@ const SettingsPage = () => {
     });
   };
   
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result);
+      try {
+        // Show a loading state
+        setSaving(true);
+        
+        // Upload to Cloudinary
+        const imageUrl = await uploadProfilePicture(file);
+        
+        // Update profile with the new image URL
+        setProfileImage(imageUrl);
+        
+        // Update user profile in the database
+        // This would typically be done in the saveSettings function
+        
+        setSuccessMessage('Profile picture updated successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } catch (error) {
+        setError('Failed to upload image. Please try again.');
+        setTimeout(() => setError(''), 3000);
+      } finally {
+        setSaving(false);
         setShowAvatarGallery(false);
-      };
-      reader.readAsDataURL(file);
+      }
     }
   };
   
