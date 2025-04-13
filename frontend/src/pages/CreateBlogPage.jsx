@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from '../config/axios';
 import '../assets/styles/CreateBlogPage.css';
+import { uploadBlogImage } from '../utils/imageUpload';
 
 const CreateBlogPage = () => {
   const navigate = useNavigate();
@@ -35,27 +36,34 @@ const CreateBlogPage = () => {
     }
   };
   
-  const handleImageChange = (e) => {
+  const handleCoverImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({
-        ...formData,
-        coverImage: file,
-      });
-      
-      // Create preview URL
+      // Show preview immediately for better UX
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
       reader.readAsDataURL(file);
       
-      // Clear error
-      if (errors.coverImage) {
-        setErrors({
-          ...errors,
-          coverImage: '',
+      try {
+        setIsSubmitting(true);
+        
+        // Upload to Cloudinary
+        const imageUrl = await uploadBlogImage(file);
+        
+        // Update form data with the image URL
+        setFormData({
+          ...formData,
+          coverImage: imageUrl
         });
+        
+        setIsSubmitting(false);
+      } catch (error) {
+        setErrors({
+          coverImage: 'Failed to upload image. Please try again.',
+        });
+        setIsSubmitting(false);
       }
     }
   };
@@ -219,7 +227,7 @@ const CreateBlogPage = () => {
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={handleImageChange}
+                onChange={handleCoverImageChange}
                 accept="image/*"
                 hidden
               />

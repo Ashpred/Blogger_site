@@ -340,4 +340,31 @@ exports.shareBlog = async (req, res) => {
       error: error.message
     });
   }
+};
+
+// @desc   Get popular blog posts
+// @route  GET /api/blogs/popular
+// @access Public
+exports.getPopularBlogs = async (req, res) => {
+  try {
+    // Get popular blogs based on a combination of likes, comments, and shares
+    // Limit to 5 popular blogs
+    const blogs = await Blog.find()
+      .sort({ likes: -1, shares: -1, 'comments.length': -1 })
+      .limit(5)
+      .populate('author', 'fullName username profilePicture');
+
+    res.status(200).json({
+      success: true,
+      count: blogs.length,
+      data: blogs
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message
+    });
+  }
 }; 

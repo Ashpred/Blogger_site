@@ -8,13 +8,15 @@ const {
   likeBlog, 
   commentOnBlog, 
   deleteComment,
-  shareBlog
+  shareBlog,
+  getPopularBlogs
 } = require('../controllers/blogController');
 const { protect } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
 // Blog routes
+router.get('/popular', getPopularBlogs);
 router.route('/')
   .get(getBlogs)
   .post(protect, createBlog);

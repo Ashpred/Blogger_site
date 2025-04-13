@@ -1,19 +1,26 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from '../config/axios';
 
 const LogoutButton = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await axios.post('/api/auth/logout');
+      // Call the logout function from context
       logout();
-      navigate('/login');
+      
+      // Force navigation to login page
+      navigate('/signin', { replace: true });
+      
+      // Add a small delay and then reload the page to ensure everything is reset
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch (error) {
       console.error('Logout failed:', error);
+      alert('Failed to log out. Please try again.');
     }
   };
 

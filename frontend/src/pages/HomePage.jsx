@@ -5,6 +5,7 @@ import { MeshDistortMaterial, Sphere, OrbitControls, Text } from '@react-three/d
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import axios from '../config/axios';
 import '../assets/styles/HomePage.css';
 
 // Optimized 3D sphere component with memoization
@@ -48,7 +49,7 @@ const FloatingText = ({ text, position, rotation, color }) => {
       rotation={rotation}
       color={color}
       fontSize={0.5}
-      font="/fonts/Inter-Bold.woff"
+      font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2"
       anchorX="center"
       anchorY="middle"
     >
@@ -73,8 +74,27 @@ const FeatureCard = ({ icon, title, description, delay }) => {
   );
 };
 
-// Memoized blog card component
+// Updated PopularBlogCard component to work with real data
 const PopularBlogCard = ({ blog, isActive }) => {
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  };
+
+  // Create excerpt from content
+  const createExcerpt = (content) => {
+    // Remove any HTML tags and limit to 100 characters
+    return content.replace(/(<([^>]+)>)/gi, '').substring(0, 100);
+  };
+
   return (
     <motion.div
       className={`popular-blog-card ${isActive ? 'active' : ''}`}
@@ -88,11 +108,11 @@ const PopularBlogCard = ({ blog, isActive }) => {
       </div>
       <div className="blog-content">
         <h3>{blog.title}</h3>
-        <p>{blog.excerpt}</p>
+        <p>{createExcerpt(blog.excerpt)}</p>
         <div className="blog-meta">
           <span className="author">{blog.author}</span>
           <span className="dot">•</span>
-          <span className="date">{blog.date}</span>
+          <span className="date">{formatDate(blog.date)}</span>
         </div>
       </div>
     </motion.div>
