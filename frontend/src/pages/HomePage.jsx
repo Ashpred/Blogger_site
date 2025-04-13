@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, Suspense } from 'react';
+import { useRef, useState, useEffect, Suspense, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { MeshDistortMaterial, Sphere, OrbitControls, Text } from '@react-three/drei';
@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import '../assets/styles/HomePage.css';
 
-// Animated 3D sphere component
+// Optimized 3D sphere component with memoization
 const AnimatedSphere = () => {
   const sphereRef = useRef();
   
@@ -31,7 +31,7 @@ const AnimatedSphere = () => {
   );
 };
 
-// 3D text that floats in space
+// Memoized 3D text component
 const FloatingText = ({ text, position, rotation, color }) => {
   const textRef = useRef();
   
@@ -57,7 +57,7 @@ const FloatingText = ({ text, position, rotation, color }) => {
   );
 };
 
-// Feature card component
+// Memoized feature card component
 const FeatureCard = ({ icon, title, description, delay }) => {
   return (
     <motion.div 
@@ -73,6 +73,7 @@ const FeatureCard = ({ icon, title, description, delay }) => {
   );
 };
 
+// Memoized blog card component
 const PopularBlogCard = ({ blog, isActive }) => {
   return (
     <motion.div
@@ -83,7 +84,7 @@ const PopularBlogCard = ({ blog, isActive }) => {
       transition={{ duration: 0.5 }}
     >
       <div className="blog-image">
-        <img src={blog.image || '/default-blog.jpg'} alt={blog.title} />
+        <img src={blog.image || '/default-blog.jpg'} alt={blog.title} loading="lazy" />
       </div>
       <div className="blog-content">
         <h3>{blog.title}</h3>
@@ -102,8 +103,8 @@ const HomePage = () => {
   const [currentBlogIndex, setCurrentBlogIndex] = useState(0);
   const { user } = useAuth();
   
-  // Sample popular blogs data (replace with actual API call)
-  const popularBlogs = [
+  // Memoized popular blogs data
+  const popularBlogs = useMemo(() => [
     {
       id: 1,
       title: "The Future of Web Development",
@@ -128,9 +129,9 @@ const HomePage = () => {
       date: "1 week ago",
       image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea"
     }
-  ];
+  ], []);
 
-  // Auto-rotate blogs every 5 seconds
+  // Optimized auto-rotate with cleanup
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBlogIndex((prevIndex) => 
@@ -139,9 +140,10 @@ const HomePage = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [popularBlogs.length]);
 
-  const containerVariants = {
+  // Memoized animation variants
+  const containerVariants = useMemo(() => ({
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1,
@@ -150,31 +152,30 @@ const HomePage = () => {
         delayChildren: 0.3
       } 
     }
-  };
+  }), []);
 
-  const itemVariants = {
+  const itemVariants = useMemo(() => ({
     hidden: { y: 20, opacity: 0 },
     visible: { 
       y: 0, 
       opacity: 1,
       transition: { type: 'spring', stiffness: 100 }
     }
-  };
+  }), []);
 
-  const buttonVariants = {
+  const buttonVariants = useMemo(() => ({
     hover: { 
       scale: 1.05, 
       boxShadow: '0px 0px 8px rgba(255,255,255,0.5)',
       transition: { type: 'spring', stiffness: 400 }
     },
     tap: { scale: 0.95 }
-  };
+  }), []);
 
   return (
     <div className="home-page">
       <Navbar />
       
-      {/* Hero Section with WebGL Animation */}
       <section className="hero-section">
         <div className="hero-content">
           <motion.div 
@@ -186,14 +187,14 @@ const HomePage = () => {
             <h1>Share Your Stories with the World</h1>
             <p>A modern blogging platform with stunning visuals and seamless experience</p>
             
-            {/* Conditionally render buttons based on authentication status */}
             {!user ? (
               <div className="hero-buttons">
                 <Link to="/signup">
                   <motion.button 
                     className="primary-button"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                   >
                     Get Started
                   </motion.button>
@@ -201,8 +202,9 @@ const HomePage = () => {
                 <Link to="/signin">
                   <motion.button 
                     className="secondary-button"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                   >
                     Sign In
                   </motion.button>
@@ -213,8 +215,9 @@ const HomePage = () => {
                 <Link to="/main">
                   <motion.button 
                     className="primary-button"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                   >
                     Explore Blogs
                   </motion.button>
@@ -222,8 +225,9 @@ const HomePage = () => {
                 <Link to="/create-blog">
                   <motion.button 
                     className="secondary-button"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
                   >
                     Create Blog
                   </motion.button>
@@ -270,7 +274,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="features-section">
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
@@ -308,7 +311,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Photo Background Section */}
       <section className="photos-section">
         <div className="photo-overlay">
           <motion.h2
@@ -328,7 +330,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Contact Footer */}
       <footer className="contact-footer">
         <div className="footer-content">
           <div className="footer-info">

@@ -67,6 +67,11 @@ const Navbar = () => {
             whileHover={{ rotate: 5 }}
             whileTap={{ scale: 0.95 }}
           >
+            <img 
+              src="https://img.freepik.com/premium-vector/blog-icon-flat-fill-set-collection_1223784-21660.jpg" 
+              alt="Blog Icon" 
+              className="blog-icon"
+            />
             BlogSphere
           </motion.div>
         </Link>

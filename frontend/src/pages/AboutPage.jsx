@@ -45,19 +45,19 @@ const AboutPage = () => {
 
   const teamMembers = [
     {
-      name: 'Sarah Johnson',
-      role: 'Lead Developer',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+      name: 'Kavya Agarwal',
+      role: 'Mern Stack Developer',
+      image: 'https://static.vecteezy.com/system/resources/thumbnails/002/206/015/small/developer-working-icon-free-vector.jpg',
     },
     {
-      name: 'Michael Chen',
-      role: 'UX Designer',
-      image: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+      name: 'Vinit Khorwal',
+      role: 'Mern Stack Developer',
+      image: 'https://static.vecteezy.com/system/resources/thumbnails/002/206/015/small/developer-working-icon-free-vector.jpg',
     },
     {
-      name: 'Emily Rodriguez',
-      role: 'Content Strategist',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+      name: 'Ashwin Anand',
+      role: 'Mern Stack Developer',
+      image: 'https://static.vecteezy.com/system/resources/thumbnails/002/206/015/small/developer-working-icon-free-vector.jpg',
     },
   ];
 
