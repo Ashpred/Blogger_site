@@ -58,8 +58,8 @@ const SignUpPage = () => {
         localStorage.setItem('userId', response.data.user.id);
         localStorage.setItem('username', response.data.user.username);
         
-        login(response.data.user);
-        navigate('/main');
+        login(response.data.user, true);
+        navigate('/create-profile');
       }
     } catch (error) {
       console.error('Registration error:', error);

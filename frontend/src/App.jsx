@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ToastProvider } from './context/ToastContext'
 import HomePage from './pages/HomePage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
@@ -12,13 +13,14 @@ import SettingsPage from './pages/SettingsPage'
 import AboutPage from './pages/AboutPage'
 import ProfilePage from './pages/ProfilePage'
 import Navbar from './components/Navbar'
+import LoadingSpinner from './components/LoadingSpinner'
 import './App.css'
 
 function AppRoutes() {
-  const { user, loading } = useAuth();
+  const { user, loading, isNewUser, setIsNewUser } = useAuth();
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   return (
@@ -33,14 +35,18 @@ function AppRoutes() {
         />
         <Route 
           path="/signup" 
-          element={user ? <Navigate to="/main" /> : <SignUpPage />} 
+          element={user ? (isNewUser ? <Navigate to="/create-profile" /> : <Navigate to="/main" />) : <SignUpPage />} 
         />
         <Route path="/about" element={<AboutPage />} />
 
         {/* Protected Routes */}
         <Route 
           path="/create-profile" 
-          element={user ? <CreateProfilePage /> : <Navigate to="/signin" />} 
+          element={
+            user ? (
+              <CreateProfilePage onComplete={() => setIsNewUser(false)} />
+            ) : <Navigate to="/signin" />
+          } 
         />
         {/* Redirect verify route to main */}
         <Route 
@@ -49,7 +55,13 @@ function AppRoutes() {
         />
         <Route 
           path="/main" 
-          element={user ? <MainPage /> : <Navigate to="/signin" />} 
+          element={
+            user ? (
+              isNewUser ? 
+              <Navigate to="/create-profile" /> : 
+              <MainPage />
+            ) : <Navigate to="/signin" />
+          } 
         />
         <Route 
           path="/profile/:username" 
@@ -79,7 +91,9 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
     </AuthProvider>
   );
 }

@@ -286,38 +286,6 @@ const MainPage = () => {
         
         {/* Content Area */}
         <div className="content-area">
-          <div className="search-container">
-            <div className="search-input-container">
-              <i className="fas fa-search"></i>
-              <input 
-                type="text"
-                placeholder="Search blogs, tags, or authors..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="search-input"
-              />
-              {searchQuery && (
-                <button 
-                  className="clear-search"
-                  onClick={() => setSearchQuery('')}
-                >
-                  <i className="fas fa-times"></i>
-                </button>
-              )}
-            </div>
-            
-            <div className="filter-tags">
-              {filter !== 'all' && (
-                <div className="active-filter">
-                  <span>{filter}</span>
-                  <button onClick={() => handleFilterChange('all')}>
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          
           {loading ? (
             <div className="loading-container">
               <div className="spinner"></div>

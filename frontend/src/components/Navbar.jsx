@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import LogoutButton from './LogoutButton';
 import '../assets/styles/Navbar.css';
@@ -10,6 +10,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +27,11 @@ const Navbar = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
 
   const navVariants = {
     hidden: { opacity: 0, y: -50 },
@@ -47,6 +53,25 @@ const Navbar = () => {
       transition: { type: 'spring', stiffness: 400 }
     },
     tap: { scale: 0.95 }
+  };
+
+  const mobileMenuVariants = {
+    closed: { 
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut"
+      }
+    },
+    open: { 
+      opacity: 1,
+      height: 'auto',
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut"
+      }
+    }
   };
 
   const toggleMobileMenu = () => {
@@ -72,32 +97,51 @@ const Navbar = () => {
               alt="Blog Icon" 
               className="blog-icon"
             />
-            BlogSphere
+            <span className="logo-text">BlogSphere</span>
           </motion.div>
         </Link>
 
         {/* Mobile menu button */}
-        <button 
+        <motion.button 
           className="mobile-menu-button"
           onClick={toggleMobileMenu}
           aria-label="Toggle navigation menu"
+          whileTap={{ scale: 0.9 }}
         >
           <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
-        </button>
+        </motion.button>
 
-        <div className={`navbar-links ${mobileMenuOpen ? 'active' : ''}`}>
+        {/* Desktop menu */}
+        <div className="desktop-menu">
           <Link to="/about" className="navbar-link">About Us</Link>
           
           {user ? (
             <>
               <Link to="/main" className="navbar-link">Feed</Link>
-              <Link to="/create-blog" className="navbar-link">Create Blog</Link>
-              <Link to={`/profile/${user.username}`} className="navbar-link">Profile</Link>
-              <Link to="/settings" className="navbar-link">Settings</Link>
+              <Link to="/create-blog" className="navbar-link">Create</Link>
               <LogoutButton />
+              <div className="profile-dropdown">
+                <img 
+                  src={user.profilePicture || "https://via.placeholder.com/40"} 
+                  alt={user.fullName} 
+                  className="profile-avatar" 
+                />
+                <div className="dropdown-content">
+                  <Link to={`/profile/${user.username}`} className="dropdown-item">
+                    <i className="fas fa-user"></i> Profile
+                  </Link>
+                  <Link to="/settings" className="dropdown-item">
+                    <i className="fas fa-cog"></i> Settings
+                  </Link>
+                  <div className="dropdown-divider"></div>
+                  <div className="dropdown-item logout-container">
+                    <LogoutButton />
+                  </div>
+                </div>
+              </div>
             </>
           ) : (
-            <>
+            <div className="auth-buttons">
               <Link to="/signin">
                 <motion.button 
                   className="signin-button"
@@ -118,9 +162,41 @@ const Navbar = () => {
                   Sign Up
                 </motion.button>
               </Link>
-            </>
+            </div>
           )}
         </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              className="mobile-menu"
+              variants={mobileMenuVariants}
+              initial="closed"
+              animate="open"
+              exit="closed"
+            >
+              <Link to="/about" className="mobile-menu-item">About Us</Link>
+              
+              {user ? (
+                <>
+                  <Link to="/main" className="mobile-menu-item">Feed</Link>
+                  <Link to="/create-blog" className="mobile-menu-item">Create Blog</Link>
+                  <Link to={`/profile/${user.username}`} className="mobile-menu-item">Profile</Link>
+                  <Link to="/settings" className="mobile-menu-item">Settings</Link>
+                  <div className="mobile-menu-item logout-container">
+                    <LogoutButton />
+                  </div>
+                </>
+              ) : (
+                <div className="mobile-auth-buttons">
+                  <Link to="/signin" className="mobile-signin">Sign In</Link>
+                  <Link to="/signup" className="mobile-signup">Sign Up</Link>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.nav>
   );

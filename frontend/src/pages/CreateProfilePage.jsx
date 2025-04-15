@@ -1,10 +1,13 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+import axios from '../config/axios';
 import Navbar from '../components/Navbar';
 import '../assets/styles/AuthPages.css';
 
-const CreateProfilePage = () => {
+const CreateProfilePage = ({ onComplete }) => {
   const [formData, setFormData] = useState({
     bio: '',
     profilePicture: null
@@ -14,6 +17,8 @@ const CreateProfilePage = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { user, login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -60,20 +65,70 @@ const CreateProfilePage = () => {
     setError(null);
 
     try {
-      // In a real app, you would upload the profile picture and send the bio to your backend
-      // For now, we'll simulate a successful profile creation
-      console.log('Creating profile with:', formData);
+      let profileImageUrl = null;
+
+      // Upload profile picture if one was selected
+      if (formData.profilePicture) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', formData.profilePicture);
+        
+        const uploadResponse = await axios.post('/api/upload/profile', uploadFormData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        if (uploadResponse.data.success) {
+          profileImageUrl = uploadResponse.data.imageUrl;
+        } else {
+          throw new Error('Failed to upload profile picture');
+        }
+      }
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Update user profile with bio and profile picture URL
+      const updateData = {
+        bio: formData.bio
+      };
       
-      // Navigate to the main page after successful profile creation
-      navigate('/main');
+      if (profileImageUrl) {
+        updateData.profilePicture = profileImageUrl;
+      }
+      
+      const updateResponse = await axios.put('/api/users/profile', updateData);
+      
+      if (updateResponse.data.success) {
+        // Update local user data with new profile info
+        const updatedUser = {
+          ...user,
+          bio: formData.bio,
+          profilePicture: profileImageUrl || user.profilePicture
+        };
+        
+        // Update user in auth context
+        login(updatedUser);
+        
+        // Reset new user status
+        if (onComplete) onComplete();
+        
+        showToast('Profile created successfully!', 'success');
+        navigate('/main');
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (err) {
-      setError(err.message || 'Failed to create profile. Please try again.');
+      console.error('Profile update error:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to create profile. Please try again.');
+      showToast('Failed to create profile', 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const skipProfileSetup = () => {
+    // Reset new user status
+    if (onComplete) onComplete();
+    showToast('You can complete your profile later from settings', 'info');
+    navigate('/main');
   };
 
   const triggerFileInput = () => {
@@ -163,14 +218,21 @@ const CreateProfilePage = () => {
               className="auth-button"
               disabled={loading}
             >
-              {loading ? 'Creating Profile...' : 'Complete Setup'}
+              {loading ? (
+                <>
+                  <span className="spinner-small"></span>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                'Complete Setup'
+              )}
             </button>
             
             <div className="skip-option">
               <button 
                 type="button" 
                 className="skip-button"
-                onClick={() => navigate('/main')}
+                onClick={skipProfileSetup}
                 disabled={loading}
               >
                 Skip for now
