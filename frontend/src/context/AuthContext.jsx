@@ -8,6 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -45,12 +46,14 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = (userData) => {
+  const login = (userData, newUser = false) => {
     setUser(userData);
+    setIsNewUser(newUser);
   };
 
   const logout = () => {
     setUser(null);
+    setIsNewUser(false);
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
@@ -59,6 +62,8 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
+    isNewUser,
+    setIsNewUser,
     login,
     logout
   };

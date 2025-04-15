@@ -1,36 +1,47 @@
-import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import '../assets/styles/LogoutButton.css';
 
 const LogoutButton = () => {
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const { logout } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    setIsLoading(true);
     try {
-      // Call the logout function from context
-      logout();
-      
-      // Force navigation to login page
-      navigate('/signin', { replace: true });
-      
-      // Add a small delay and then reload the page to ensure everything is reset
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      await logout();
+      showToast('Successfully logged out', 'success');
+      navigate('/');
     } catch (error) {
-      console.error('Logout failed:', error);
-      alert('Failed to log out. Please try again.');
+      console.error('Logout error:', error);
+      showToast('Failed to log out. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <button 
+    <motion.button
+      className="logout-button"
       onClick={handleLogout}
-      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors"
+      disabled={isLoading}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
-      Logout
-    </button>
+      {isLoading ? (
+        <div className="logout-spinner"></div>
+      ) : (
+        <>
+          <i className="fas fa-sign-out-alt"></i>
+          <span>Sign Out</span>
+        </>
+      )}
+    </motion.button>
   );
 };
 

@@ -380,9 +380,9 @@ const HomePage = () => {
             <div className="footer-column">
               <h4>Contact</h4>
               <ul>
-                <li>Email: contact@blogsphere.com</li>
-                <li>Phone: +1 (555) 123-4567</li>
-                <li>Address: 123 Blog Street, Content City</li>
+                <li>Email: kavya@blogsphere.com</li>
+                <li>Phone: +91 xxxxx</li>
+                <li>Address: abcd</li>
               </ul>
             </div>
           </div>

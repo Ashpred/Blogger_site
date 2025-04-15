@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from '../config/axios';
 import '../assets/styles/ProfilePage.css';
 
-const BlogCard = ({ blog }) => {
+const BlogCard = ({ blog, isOwnProfile, onDelete }) => {
   // Create excerpt from content
   const createExcerpt = (content) => {
     // Remove any HTML tags if present
@@ -33,6 +33,17 @@ const BlogCard = ({ blog }) => {
             <span><i className="fas fa-heart"></i> {blog.likes?.length || 0}</span>
             <span><i className="fas fa-comment"></i> {blog.comments?.length || 0}</span>
             <span><i className="fas fa-share"></i> {blog.shares || 0}</span>
+            {isOwnProfile && (
+              <span 
+                className="delete-blog"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onDelete(blog._id);
+                }}
+              >
+                <i className="fas fa-trash-alt"></i> Delete
+              </span>
+            )}
           </div>
         </div>
         <Link to={`/blog/${blog._id}`} className="read-more">Read More</Link>
@@ -47,9 +58,7 @@ const ProfilePage = () => {
   const [userBlogs, setUserBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscribersCount, setSubscribersCount] = useState(0);
-  const [subscribeLoading, setSubscribeLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const { username } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -67,21 +76,10 @@ const ProfilePage = () => {
         
         const profileData = userResponse.data.data;
         setUserData(profileData);
-        setSubscribersCount(profileData.subscribersCount || 0);
         
         // Check if it's the user's own profile
         if (user && user.username === username) {
           setIsOwnProfile(true);
-        } else if (user && profileData.id) {
-          // Check if current user is subscribed to this profile
-          try {
-            const subscriptionResponse = await axios.get(`/api/users/check-subscription/${profileData.id}`);
-            if (subscriptionResponse.data.success) {
-              setIsSubscribed(subscriptionResponse.data.isSubscribed);
-            }
-          } catch (err) {
-            console.error('Failed to check subscription status:', err);
-          }
         }
         
         // Fetch user's blogs
@@ -105,35 +103,26 @@ const ProfilePage = () => {
     fetchUserProfile();
   }, [username, user, navigate]);
 
-  const handleSubscribe = async () => {
-    if (!user) {
-      navigate('/signin');
+  const handleDeleteBlog = async (blogId) => {
+    if (!window.confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
       return;
     }
-
-    if (!userData || !userData.id) {
-      return;
-    }
-
-    setSubscribeLoading(true);
+    
+    setDeleteLoading(true);
     try {
-      const response = await axios.put(`/api/users/subscribe/${userData.id}`);
+      const response = await axios.delete(`/api/blogs/${blogId}`);
       
       if (response.data.success) {
-        setIsSubscribed(response.data.isSubscribed);
-        setSubscribersCount(response.data.subscribersCount);
-        
-        // Show toast notification
-        const message = response.data.isSubscribed ? 
-          `You are now following ${userData.fullName}` : 
-          `You have unfollowed ${userData.fullName}`;
-        // Add toast notification here if you have a toast system
+        // Remove the deleted blog from the state
+        setUserBlogs(prev => prev.filter(blog => blog._id !== blogId));
+        // Show a success message (you can implement a toast notification here)
+        alert('Blog post deleted successfully');
       }
     } catch (error) {
-      console.error('Error subscribing to user:', error);
-      // Show error toast
+      console.error('Error deleting blog post:', error);
+      alert('Failed to delete blog post. Please try again.');
     } finally {
-      setSubscribeLoading(false);
+      setDeleteLoading(false);
     }
   };
 
@@ -192,6 +181,7 @@ const ProfilePage = () => {
                   src={userData.profilePicture}
                   alt={userData.fullName}
                   className="avatar-image"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (
                 <div className="avatar-placeholder">
@@ -214,31 +204,12 @@ const ProfilePage = () => {
                 <span className="stat-value">{userBlogs.length}</span>
                 <span className="stat-label">Posts</span>
               </div>
-              <div className="stat">
-                <span className="stat-value">{subscribersCount}</span>
-                <span className="stat-label">Followers</span>
-              </div>
             </div>
             
-            {isOwnProfile ? (
+            {isOwnProfile && (
               <Link to="/settings" className="edit-profile-btn">
                 <i className="fas fa-edit"></i> Edit Profile
               </Link>
-            ) : (
-              <button 
-                className={`follow-btn ${isSubscribed ? 'following' : ''}`}
-                onClick={handleSubscribe}
-                disabled={subscribeLoading}
-              >
-                {subscribeLoading ? (
-                  <span className="loading-spinner"></span>
-                ) : (
-                  <>
-                    <i className={`fas ${isSubscribed ? 'fa-user-check' : 'fa-user-plus'}`}></i>
-                    {isSubscribed ? 'Following' : 'Follow'}
-                  </>
-                )}
-              </button>
             )}
           </div>
         </div>
@@ -252,74 +223,35 @@ const ProfilePage = () => {
             >
               Posts
             </button>
-            {isOwnProfile && (
-              <>
-                <button
-                  className={`tab-btn ${activeTab === 'drafts' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('drafts')}
-                >
-                  Drafts
-                </button>
-                <button
-                  className={`tab-btn ${activeTab === 'saved' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('saved')}
-                >
-                  Saved
-                </button>
-              </>
-            )}
           </div>
 
           {/* Tab Content */}
           <div className="tab-content">
-            {activeTab === 'posts' && (
-              <div className="posts-container">
-                {userBlogs.length > 0 ? (
-                  userBlogs.map((blog) => (
-                    <BlogCard key={blog._id} blog={blog} />
-                  ))
-                ) : (
-                  <div className="empty-state">
-                    <div className="empty-icon">
-                      <i className="fas fa-feather-alt"></i>
-                    </div>
-                    <h3>No posts yet</h3>
-                    <p>When {isOwnProfile ? 'you publish' : 'this user publishes'} articles, they'll appear here.</p>
-                    {isOwnProfile && (
-                      <Link to="/create-blog" className="create-blog-btn">
-                        Create Your First Blog
-                      </Link>
-                    )}
+            <div className="posts-container">
+              {userBlogs.length > 0 ? (
+                userBlogs.map((blog) => (
+                  <BlogCard 
+                    key={blog._id} 
+                    blog={blog} 
+                    isOwnProfile={isOwnProfile}
+                    onDelete={handleDeleteBlog}
+                  />
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">
+                    <i className="fas fa-feather-alt"></i>
                   </div>
-                )}
-              </div>
-            )}
-            
-            {activeTab === 'drafts' && isOwnProfile && (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <i className="fas fa-file-alt"></i>
+                  <h3>No posts yet</h3>
+                  <p>When {isOwnProfile ? 'you publish' : 'this user publishes'} articles, they'll appear here.</p>
+                  {isOwnProfile && (
+                    <Link to="/create-blog" className="create-blog-btn">
+                      Create Your First Blog
+                    </Link>
+                  )}
                 </div>
-                <h3>No drafts yet</h3>
-                <p>Your draft articles will appear here for you to continue working on them.</p>
-                <Link to="/create-blog" className="create-blog-btn">
-                  Start Writing
-                </Link>
-              </div>
-            )}
-            
-            {activeTab === 'saved' && isOwnProfile && (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <i className="fas fa-bookmark"></i>
-                </div>
-                <h3>No saved posts</h3>
-                <p>Articles you save will appear here for you to read later.</p>
-                <Link to="/main" className="browse-blogs-btn">
-                  Browse Blogs
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

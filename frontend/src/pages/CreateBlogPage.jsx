@@ -19,6 +19,7 @@ const CreateBlogPage = () => {
   const [preview, setPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [uploadStatus, setUploadStatus] = useState('');
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,6 +40,24 @@ const CreateBlogPage = () => {
   const handleCoverImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors({
+          ...errors,
+          coverImage: 'Image size should be less than 5MB'
+        });
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        setErrors({
+          ...errors,
+          coverImage: 'Please select a valid image file'
+        });
+        return;
+      }
+      
       // Show preview immediately for better UX
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -48,9 +67,11 @@ const CreateBlogPage = () => {
       
       try {
         setIsSubmitting(true);
+        setUploadStatus('Uploading image...');
         
         // Upload to Cloudinary
         const imageUrl = await uploadBlogImage(file);
+        console.log('Received image URL from server:', imageUrl);
         
         // Update form data with the image URL
         setFormData({
@@ -58,11 +79,15 @@ const CreateBlogPage = () => {
           coverImage: imageUrl
         });
         
+        setUploadStatus('Image uploaded successfully!');
         setIsSubmitting(false);
       } catch (error) {
+        console.error('Error in handleCoverImageChange:', error);
         setErrors({
-          coverImage: 'Failed to upload image. Please try again.',
+          ...errors,
+          coverImage: 'Failed to upload image. Please try again.'
         });
+        setUploadStatus('Image upload failed');
         setIsSubmitting(false);
       }
     }
@@ -115,16 +140,17 @@ const CreateBlogPage = () => {
         .map(tag => tag.trim())
         .filter(tag => tag !== '');
       
-      // Use regular JSON for the API request - no FormData needed
-      // The backend controller extracts data from req.body
+      // Prepare blog data
       const blogData = {
         title: formData.title,
         content: formData.content,
         tags: tagsArray,
-        coverImage: preview ? preview : 'default-blog-cover.jpg' // Use the data URL as cover image
+        coverImage: formData.coverImage
       };
       
-      // Send the API request with standard JSON
+      console.log('Submitting blog with data:', blogData);
+      
+      // Send the API request
       const response = await axios.post('/api/blogs', blogData);
       
       if (response.data && response.data.data) {
@@ -141,10 +167,11 @@ const CreateBlogPage = () => {
       
       // Show a more detailed error if available
       const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.message || 
-                          'Failed to create blog post. Please try again.';
+                           error.response?.data?.message || 
+                           'Failed to create blog post. Please try again.';
       
       setErrors({
+        ...errors,
         submit: errorMessage
       });
     }
