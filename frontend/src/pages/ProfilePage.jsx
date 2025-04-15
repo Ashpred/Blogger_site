@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from '../config/axios';
+import { getDefaultAvatar, getInitials } from '../utils/avatarUtils';
+import { fixImageUrl } from '../utils/imageUtils';
 import '../assets/styles/ProfilePage.css';
 
 const BlogCard = ({ blog, isOwnProfile, onDelete }) => {
@@ -59,6 +61,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
   const { username } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -67,6 +70,12 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        if (!username) {
+          setError('Username is required');
+          setLoading(false);
+          return;
+        }
+        
         // Fetch user profile
         const userResponse = await axios.get(`/api/users/${username}`);
         
@@ -103,6 +112,13 @@ const ProfilePage = () => {
     fetchUserProfile();
   }, [username, user, navigate]);
 
+  useEffect(() => {
+    if (userData && userData.profilePicture) {
+      console.log('Original profile image URL:', userData.profilePicture);
+      console.log('Fixed profile image URL:', fixImageUrl(userData.profilePicture));
+    }
+  }, [userData]);
+
   const handleDeleteBlog = async (blogId) => {
     if (!window.confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
       return;
@@ -126,13 +142,9 @@ const ProfilePage = () => {
     }
   };
 
-  const getInitials = (name) => {
-    if (!name) return '';
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase();
+  const handleImageError = () => {
+    console.log("Profile image failed to load");
+    setProfileImageError(true);
   };
 
   if (loading) {
@@ -161,7 +173,19 @@ const ProfilePage = () => {
   }
 
   if (!userData) {
-    return null;
+    return (
+      <div className="profile-error">
+        <div className="error-container">
+          <div className="error-icon">
+            <i className="fas fa-exclamation-circle"></i>
+          </div>
+          <h2>User profile not found</h2>
+          <button onClick={() => navigate('/')} className="go-home-btn">
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -176,12 +200,18 @@ const ProfilePage = () => {
         <div className="profile-header">
           <div className="profile-cover">
             <div className="profile-avatar">
-              {userData.profilePicture ? (
+              {userData.profilePicture && !profileImageError ? (
                 <img
-                  src={userData.profilePicture}
-                  alt={userData.fullName}
+                  src={fixImageUrl(userData.profilePicture)}
+                  alt={userData.fullName || 'User'}
                   className="avatar-image"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{
+                    width: "100%", 
+                    height: "100%", 
+                    objectFit: "cover",
+                    display: "block"
+                  }}
+                  onError={handleImageError}
                 />
               ) : (
                 <div className="avatar-placeholder">
@@ -192,8 +222,8 @@ const ProfilePage = () => {
           </div>
           
           <div className="profile-info">
-            <h1>{userData.fullName}</h1>
-            <p className="username">@{userData.username}</p>
+            <h1>{userData.fullName || 'User'}</h1>
+            <p className="username">@{userData.username || 'username'}</p>
             
             {userData.bio && (
               <p className="bio">{userData.bio}</p>

@@ -24,6 +24,15 @@ exports.uploadImage = async (req, res) => {
       mimetype: req.file.mimetype
     });
 
+    // Verify that the file was successfully uploaded to Cloudinary
+    if (!req.file.path) {
+      console.error('Missing file path: Cloudinary upload may have failed');
+      return res.status(500).json({
+        success: false,
+        message: 'File uploaded but Cloudinary URL not returned'
+      });
+    }
+
     res.status(200).json({
       success: true,
       imageUrl: req.file.path,

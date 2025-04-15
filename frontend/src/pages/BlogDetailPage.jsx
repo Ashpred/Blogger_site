@@ -3,8 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from '../config/axios';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { fixImageUrl } from '../utils/imageUtils';
 import BlogMetrics from '../components/BlogMetrics';
 import '../assets/styles/BlogDetailPage.css';
+import '../assets/styles/BlogContent.css';
 
 const BlogDetailPage = () => {
   const { blogId } = useParams();
@@ -126,7 +129,14 @@ const BlogDetailPage = () => {
   return (
     <div className="blog-detail-page">
       <div className="blog-container">
-        {/* Blog Header */}
+        {/* Cover Image at the top */}
+        <div className="blog-cover-image-container">
+          <div className="blog-cover-image">
+            <img src={blog.coverImage} alt={blog.title} />
+          </div>
+        </div>
+        
+        {/* Blog Header with title and author info */}
         <div className="blog-header">
           <div className="blog-info">
             <h1 className="blog-title">{blog.title}</h1>
@@ -134,7 +144,7 @@ const BlogDetailPage = () => {
             <div className="blog-meta">
               <div className="blog-author">
                 <img 
-                  src={blog.author.profilePicture || '/default-profile.jpg'} 
+                  src={blog.author.profilePicture ? fixImageUrl(blog.author.profilePicture) : '/default-profile.jpg'} 
                   alt={blog.author.fullName || blog.author.username} 
                   className="author-image"
                 />
@@ -155,14 +165,12 @@ const BlogDetailPage = () => {
               </div>
             </div>
           </div>
-          
-          <div className="blog-cover-image">
-            <img src={blog.coverImage} alt={blog.title} />
-          </div>
         </div>
         
         {/* Content */}
-        <div className="blog-content" dangerouslySetInnerHTML={{ __html: blog.content }}></div>
+        <div className="blog-detail-content">
+          <div className="blog-content-body" dangerouslySetInnerHTML={{ __html: blog.content }}></div>
+        </div>
         
         {/* Actions Bar */}
         <div className="blog-actions">
@@ -201,7 +209,7 @@ const BlogDetailPage = () => {
                 <div className="comment" key={comment._id}>
                   <div className="comment-author">
                     <img 
-                      src={comment.user?.profilePicture || '/default-profile.jpg'} 
+                      src={comment.user?.profilePicture ? fixImageUrl(comment.user.profilePicture) : '/default-profile.jpg'} 
                       alt={comment.user?.username} 
                       className="author-image"
                     />

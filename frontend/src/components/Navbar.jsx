@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { getDefaultAvatar, getInitials } from '../utils/avatarUtils';
+import { fixImageUrl } from '../utils/imageUtils';
 import LogoutButton from './LogoutButton';
 import '../assets/styles/Navbar.css';
+import '../assets/styles/ProfileAvatar.css';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -121,11 +124,25 @@ const Navbar = () => {
               <Link to="/create-blog" className="navbar-link">Create</Link>
               <LogoutButton />
               <div className="profile-dropdown">
-                <img 
-                  src={user.profilePicture || "https://via.placeholder.com/40"} 
-                  alt={user.fullName} 
-                  className="profile-avatar" 
-                />
+                <div 
+                  className="navbar-profile-avatar"
+                  onClick={() => navigate(`/profile/${user.username}`)}
+                >
+                  {user.profilePicture ? (
+                    <img 
+                      src={fixImageUrl(user.profilePicture)} 
+                      alt={user.fullName || 'User'} 
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = getDefaultAvatar(user.username, user._id);
+                      }}
+                    />
+                  ) : (
+                    <div className="default-avatar">
+                      {getInitials(user.fullName)}
+                    </div>
+                  )}
+                </div>
                 <div className="dropdown-content">
                   <Link to={`/profile/${user.username}`} className="dropdown-item">
                     <i className="fas fa-user"></i> Profile

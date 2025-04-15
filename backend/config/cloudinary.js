@@ -24,6 +24,11 @@ try {
     secure: true
   });
   
+  console.log('Cloudinary config values:');
+  console.log('- Cloud Name:', cloudName);
+  console.log('- API Key:', apiKey ? `${apiKey.substring(0, 3)}...` : 'undefined');
+  console.log('- API Secret:', apiSecret ? `${apiSecret.substring(0, 3)}...` : 'undefined');
+  
   // Verify the configuration by making a simple API call
   cloudinary.api.ping((error, result) => {
     if (error) {
@@ -44,8 +49,8 @@ const profileStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'blogsphere/profiles',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
-    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    allowed_formats: ['jpg', 'jpeg', 'png'],
+    transformation: [{ width: 400, height: 400, crop: 'fill' }]
   }
 });
 
@@ -59,22 +64,20 @@ const blogStorage = new CloudinaryStorage({
   }
 });
 
-// Enhanced error handling for multer
-const handleMulterError = (err, req, res, next) => {
-  if (err) {
-    console.error('Multer/Cloudinary upload error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Error uploading file',
-      error: err.message
-    });
+// Configure storage for content images with error handling
+const contentStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'blogsphere/content',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
+    transformation: [{ width: 800, height: 600, crop: 'limit' }]
   }
-  next();
-};
+});
 
 // Create upload middleware with error handling
 const uploadProfilePicture = (req, res, next) => {
-  multer({ storage: profileStorage }).single('profilePicture')(req, res, (err) => {
+  console.log('Starting profile picture upload middleware');
+  multer({ storage: profileStorage }).single('file')(req, res, (err) => {
     if (err) {
       console.error('Profile picture upload error:', err);
       return res.status(500).json({
@@ -83,11 +86,30 @@ const uploadProfilePicture = (req, res, next) => {
         error: err.message
       });
     }
+    
+    console.log('Profile picture processed by multer');
+    if (!req.file) {
+      console.error('No file found in the request');
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+        error: 'File is missing in the request'
+      });
+    }
+    
+    console.log('File details:', {
+      path: req.file.path,
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+    
     next();
   });
 };
 
 const uploadBlogImage = (req, res, next) => {
+  console.log('Starting blog image upload middleware');
   multer({ storage: blogStorage }).single('coverImage')(req, res, (err) => {
     if (err) {
       console.error('Blog image upload error:', err);
@@ -97,6 +119,43 @@ const uploadBlogImage = (req, res, next) => {
         error: err.message
       });
     }
+    
+    console.log('Blog image processed by multer');
+    if (!req.file) {
+      console.error('No file found in the request');
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+        error: 'File is missing in the request'
+      });
+    }
+    
+    next();
+  });
+};
+
+const uploadContentImage = (req, res, next) => {
+  console.log('Starting content image upload middleware');
+  multer({ storage: contentStorage }).single('contentImage')(req, res, (err) => {
+    if (err) {
+      console.error('Content image upload error:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Error uploading content image',
+        error: err.message
+      });
+    }
+    
+    console.log('Content image processed by multer');
+    if (!req.file) {
+      console.error('No file found in the request');
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+        error: 'File is missing in the request'
+      });
+    }
+    
     next();
   });
 };
@@ -104,5 +163,6 @@ const uploadBlogImage = (req, res, next) => {
 module.exports = {
   cloudinary,
   uploadProfilePicture,
-  uploadBlogImage
+  uploadBlogImage,
+  uploadContentImage
 }; 

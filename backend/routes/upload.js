@@ -1,12 +1,13 @@
 const express = require('express');
-const { uploadImage } = require('../controllers/uploadController');
 const { protect } = require('../middlewares/authMiddleware');
-const { uploadProfilePicture, uploadBlogImage } = require('../config/cloudinary');
+const { uploadImage } = require('../controllers/upload');
+const { uploadProfilePicture, uploadBlogImage, uploadContentImage } = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Image upload routes
+// Upload routes
 router.post('/profile', protect, uploadProfilePicture, uploadImage);
 router.post('/blog', protect, uploadBlogImage, uploadImage);
+router.post('/content', protect, uploadContentImage, uploadImage);
 
 module.exports = router; 

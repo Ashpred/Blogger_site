@@ -1,13 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from '../config/axios';
 import '../assets/styles/CreateBlogPage.css';
+import EnhancedEditor from '../components/EnhancedEditor';
 import { uploadBlogImage } from '../utils/imageUpload';
+import { fixImageUrl } from '../utils/imageUtils';
+import { FaBold, FaItalic, FaUnderline, FaAlignLeft, FaAlignCenter, 
+         FaAlignRight, FaListUl, FaListOl, FaLink, FaImage, 
+         FaHeading, FaQuoteRight } from 'react-icons/fa';
 
 const CreateBlogPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const contentRef = useRef(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -33,6 +39,21 @@ const CreateBlogPage = () => {
       setErrors({
         ...errors,
         [name]: '',
+      });
+    }
+  };
+
+  // Handle content change from the BasicEditor
+  const handleContentChange = (html) => {
+    setFormData({
+      ...formData,
+      content: html
+    });
+    
+    if (errors.content) {
+      setErrors({
+        ...errors,
+        content: '',
       });
     }
   };
@@ -162,20 +183,38 @@ const CreateBlogPage = () => {
         throw new Error('Failed to create blog post');
       }
     } catch (error) {
-      console.error('Error creating blog post:', error);
-      setIsSubmitting(false);
-      
-      // Show a more detailed error if available
-      const errorMessage = error.response?.data?.error || 
-                           error.response?.data?.message || 
-                           'Failed to create blog post. Please try again.';
+      console.error('Error creating blog:', error);
       
       setErrors({
         ...errors,
-        submit: errorMessage
+        submit: error.response?.data?.message || 'Failed to create blog post. Please try again.'
       });
+      
+      setIsSubmitting(false);
     }
   };
+  
+  // Add a placeholder style to the head of the document
+  useEffect(() => {
+    // Create a style element for the placeholder
+    const style = document.createElement('style');
+    style.textContent = `
+      [contenteditable]:empty:before {
+        content: attr(data-placeholder);
+        color: #aaa;
+        font-style: italic;
+        pointer-events: none;
+        direction: rtl;
+        text-align: left;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Clean up on unmount
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   
   return (
     <div className="create-blog-page">
@@ -201,21 +240,23 @@ const CreateBlogPage = () => {
               onChange={handleChange}
               placeholder="Enter an engaging title"
               className={errors.title ? 'error' : ''}
+              dir="rtl"
+              style={{ direction: 'rtl', textAlign: 'left' }}
             />
             {errors.title && <p className="error-message">{errors.title}</p>}
           </div>
           
           <div className="form-group">
             <label htmlFor="content">Content</label>
-            <textarea
-              id="content"
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              placeholder="Write your blog content here..."
-              rows="12"
-              className={errors.content ? 'error' : ''}
-            ></textarea>
+            <div style={{ width: '100%' }}>
+              <EnhancedEditor
+                initialContent={formData.content}
+                onChange={handleContentChange}
+                placeholder="Write your blog content here..."
+                className={errors.content ? 'error' : ''}
+                contentRef={contentRef}
+              />
+            </div>
             {errors.content && <p className="error-message">{errors.content}</p>}
           </div>
           
@@ -229,6 +270,8 @@ const CreateBlogPage = () => {
               onChange={handleChange}
               placeholder="technology, programming, web development"
               className={errors.tags ? 'error' : ''}
+              dir="rtl"
+              style={{ direction: 'rtl', textAlign: 'left' }}
             />
             {errors.tags && <p className="error-message">{errors.tags}</p>}
           </div>
@@ -241,14 +284,13 @@ const CreateBlogPage = () => {
             >
               {preview ? (
                 <div className="image-preview">
-                  <img src={preview} alt="Cover preview" />
+                  <img src={fixImageUrl(preview)} alt="Cover preview" />
                   <span className="change-image">Change image</span>
                 </div>
               ) : (
                 <div className="upload-placeholder">
                   <i className="fas fa-cloud-upload-alt"></i>
                   <p>Click to upload cover image</p>
-                  <span>JPG, PNG or GIF (Max 5MB)</span>
                 </div>
               )}
               <input
@@ -256,35 +298,39 @@ const CreateBlogPage = () => {
                 ref={fileInputRef}
                 onChange={handleCoverImageChange}
                 accept="image/*"
-                hidden
+                style={{ display: 'none' }}
               />
             </div>
             {errors.coverImage && <p className="error-message">{errors.coverImage}</p>}
+            {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
           </div>
           
-          {errors.submit && <div className="error-banner">{errors.submit}</div>}
+          {errors.submit && (
+            <div className="error-banner">
+              <p>{errors.submit}</p>
+            </div>
+          )}
           
           <div className="form-actions">
             <button 
               type="button" 
-              className="cancel-button"
+              className="btn btn-secondary"
               onClick={() => navigate('/main')}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="submit-button"
+              className="btn btn-primary"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <div className="button-spinner"></div>
-                  Publishing...
+                  <span className="spinner"></span>
+                  <span>Publishing...</span>
                 </>
-              ) : (
-                'Publish Blog Post'
-              )}
+              ) : 'Publish Blog Post'}
             </button>
           </div>
         </form>

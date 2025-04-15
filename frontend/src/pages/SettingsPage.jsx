@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import axios from '../config/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { getDefaultAvatar, getInitials } from '../utils/avatarUtils';
+import { fixImageUrl } from '../utils/imageUtils';
 import '../assets/styles/SettingsPage.css';
 
 const SettingsPage = () => {
@@ -12,7 +14,7 @@ const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
-  const { user, login, logout } = useAuth();
+  const { user, login: updateUser, logout } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   
@@ -33,7 +35,7 @@ const SettingsPage = () => {
   // Load user data when component mounts
   useEffect(() => {
     if (user) {
-      setProfileImage(user.profilePicture || null);
+      setProfileImage(user.profilePicture ? fixImageUrl(user.profilePicture) : null);
       setProfileForm({
         fullName: user.fullName || '',
         username: user.username || '',
@@ -64,95 +66,77 @@ const SettingsPage = () => {
     });
   };
   
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file');
-        showToast('Please select an image file', 'error');
-        return;
-      }
-      
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image must be less than 5MB');
-        showToast('Image must be less than 5MB', 'error');
-        return;
-      }
-      
-      try {
-        // Show a loading state
-        setSaving(true);
-        
-        // Create form data for upload
-        const formData = new FormData();
-        formData.append('profilePicture', file);
-        
-        // Upload to backend
-        const uploadResponse = await axios.post('/api/upload/profile', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        
-        if (!uploadResponse.data.success) {
-          throw new Error('Failed to upload image');
-        }
-        
-        // Get the image URL from the response
-        const imageUrl = uploadResponse.data.imageUrl;
-        
-        // Update profile with the new image URL
-        const updateResponse = await axios.put('/api/users/profile', {
-          profilePicture: imageUrl
-        });
-        
-        if (!updateResponse.data.success) {
-          throw new Error('Failed to update profile');
-        }
-        
-        // Update local state and user context
-        setProfileImage(imageUrl);
-        login({
-          ...user,
-          profilePicture: imageUrl
-        });
-        
-        showToast('Profile picture updated successfully!', 'success');
-      } catch (error) {
-        console.error('Image upload error:', error);
-        setError('Failed to upload image. Please try again.');
-        showToast('Failed to upload image. Please try again.', 'error');
-      } finally {
-        setSaving(false);
-      }
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please select a valid image file (JPEG, PNG, GIF, or WEBP).');
+      showToast('Please select a valid image file (JPEG, PNG, GIF, or WEBP).', 'error');
+      return;
     }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      setError('Image size should be less than 5MB.');
+      showToast('Image size should be less than 5MB.', 'error');
+      return;
+    }
+
+    // Show preview of image
+    const reader = new FileReader();
+    reader.onload = () => {
+      setProfileImage(reader.result);
+    };
+    reader.onerror = () => {
+      setError('Error reading the image file.');
+      showToast('Error reading the image file. Please try again.', 'error');
+    };
+    reader.readAsDataURL(file);
   };
   
   const triggerFileInput = () => {
     fileInputRef.current.click();
   };
   
-  const saveProfileSettings = async () => {
+  const saveProfileSettings = async (e) => {
+    if (e) e.preventDefault();
     setSaving(true);
     setError('');
     
     try {
-      const response = await axios.put('/api/users/profile', {
-        fullName: profileForm.fullName,
-        bio: profileForm.bio
+      // Create formData for the multipart/form-data request
+      const formData = new FormData();
+      formData.append('fullName', profileForm.fullName);
+      formData.append('bio', profileForm.bio);
+
+      // Only append if there's a new image that's not already a URL
+      if (profileImage && profileImage.startsWith('data:image')) {
+        // Convert base64 to blob
+        const response = await fetch(profileImage);
+        const blob = await response.blob();
+        formData.append('profilePicture', blob, 'profile-image.jpg');
+      }
+      
+      const updateResponse = await axios.put('/api/users/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
-      if (!response.data.success) {
+      if (!updateResponse.data.success) {
         throw new Error('Failed to update profile');
       }
       
       // Update user in auth context
-      login({
+      updateUser({
         ...user,
         fullName: profileForm.fullName,
-        bio: profileForm.bio
+        bio: profileForm.bio,
+        profilePicture: updateResponse.data.data.profilePicture
       });
       
       showToast('Profile settings saved successfully!', 'success');
@@ -314,13 +298,17 @@ const SettingsPage = () => {
                 <div className="profile-image-container">
                   {profileImage ? (
                     <img 
-                      src={profileImage} 
+                      src={profileImage.startsWith('data:') ? profileImage : fixImageUrl(profileImage)} 
                       alt="Profile" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                      onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.src = getDefaultAvatar(user.username, user._id);
+                      }}
                     />
                   ) : (
                     <div className="profile-placeholder">
-                      <span>{user.fullName ? user.fullName[0].toUpperCase() : 'U'}</span>
+                      <span>{getInitials(user.fullName)}</span>
                     </div>
                   )}
                   <button 
@@ -341,7 +329,7 @@ const SettingsPage = () => {
                 <p className="photo-tip">Click on the camera icon to change your profile picture</p>
               </div>
               
-              <form onSubmit={(e) => { e.preventDefault(); saveProfileSettings(); }}>
+              <form onSubmit={saveProfileSettings}>
                   <div className="form-group">
                     <label htmlFor="fullName">Full Name</label>
                     <input

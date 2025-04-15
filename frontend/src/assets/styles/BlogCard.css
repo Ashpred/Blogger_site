@@ -39,7 +39,7 @@
 
 .blog-card-image-container {
   width: 100%;
-  height: 200px;
+  height: 90px;
   overflow: hidden;
   position: relative;
 }
@@ -61,22 +61,22 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 30px;
   background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
   pointer-events: none;
 }
 
 .blog-card-content {
-  padding: 1.5rem;
+  padding: 1.8rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
 
 .blog-card-title {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
   color: #333;
   transition: color 0.3s ease;
   line-height: 1.4;
@@ -96,10 +96,10 @@
 .blog-card-excerpt {
   color: #666;
   margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex-grow: 1;
@@ -166,6 +166,9 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  background-color: rgba(106, 17, 203, 0.05);
+  padding: 0.5rem 0.8rem;
+  border-radius: 20px;
 }
 
 .stat-container {
@@ -173,23 +176,26 @@
   align-items: center;
   gap: 0.4rem;
   transition: all 0.3s ease;
+  padding: 0.2rem 0.5rem;
+  border-radius: 15px;
 }
 
 .stat-container i {
-  color: #888;
-  font-size: 1rem;
+  color: #6a11cb;
+  font-size: 1.1rem;
   transition: all 0.3s ease;
 }
 
 .stat-count {
-  color: #888;
+  color: #555;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .blog-card:hover .stat-container:hover {
   transform: translateY(-3px);
+  background-color: rgba(106, 17, 203, 0.15);
 }
 
 .blog-card:hover .stat-container:hover i,
@@ -333,7 +339,7 @@
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
   .blog-card-image-container {
-    height: 180px;
+    height: 80px;
   }
   
   .blog-card-title {
@@ -347,7 +353,7 @@
 
 @media screen and (max-width: 576px) {
   .blog-card-image-container {
-    height: 160px;
+    height: 70px;
   }
   
   .blog-card-title {
@@ -361,7 +367,7 @@
   
   .blog-card-excerpt {
     font-size: 0.9rem;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
   }
   
   .author-avatar {

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import { getDefaultAvatar } from '../utils/avatarUtils';
+import { fixImageUrl } from '../utils/imageUtils';
 import '../assets/styles/BlogCard.css';
 
 const BlogCard = ({ blog }) => {
@@ -95,16 +96,16 @@ const BlogCard = ({ blog }) => {
             ))}
           </motion.div>
           
-          <h3 className="blog-card-title">{truncate(blog.title, 70)}</h3>
+          <h3 className="blog-card-title">{truncate(blog.title, 80)}</h3>
           
-          <p className="blog-card-excerpt">{truncate(blog.content, 120)}</p>
+          <p className="blog-card-excerpt">{truncate(blog.content, 180)}</p>
           
           <div className="blog-card-footer">
             <div className="blog-author">
               {blog.author?.profilePicture ? (
                 <motion.div className="author-avatar">
                   <img 
-                    src={blog.author.profilePicture || getDefaultAvatar(blog.author?.username, blog.author?._id)}
+                    src={blog.author.profilePicture ? fixImageUrl(blog.author.profilePicture) : getDefaultAvatar(blog.author?.username, blog.author?._id)}
                     alt={blog.author?.fullName}
                     whileHover={{ scale: 1.1, transition: { duration: 0.3 } }}
                   />
@@ -133,14 +134,14 @@ const BlogCard = ({ blog }) => {
                 className="stat-container"
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
               >
-                <i className="far fa-heart"></i> 
+                <i className="fas fa-heart"></i> 
                 <span className="stat-count">{blog.likes?.length || 0}</span>
               </motion.div>
               <motion.div 
                 className="stat-container"
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
               >
-                <i className="far fa-comment"></i> 
+                <i className="fas fa-comment"></i> 
                 <span className="stat-count">{blog.comments?.length || 0}</span>
               </motion.div>
             </div>
