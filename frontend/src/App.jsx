@@ -27,7 +27,6 @@ function AppRoutes() {
     <Router>
       <Navbar />
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route 
           path="/signin" 
@@ -39,7 +38,6 @@ function AppRoutes() {
         />
         <Route path="/about" element={<AboutPage />} />
 
-        {/* Protected Routes */}
         <Route 
           path="/create-profile" 
           element={
@@ -48,7 +46,6 @@ function AppRoutes() {
             ) : <Navigate to="/signin" />
           } 
         />
-        {/* Redirect verify route to main */}
         <Route 
           path="/verify" 
           element={<Navigate to="/main" />} 

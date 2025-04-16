@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
       }
       
       try {
-        // Use the correct endpoint for retrieving current user
         const response = await axios.get('/api/users/me');
         
         if (response.data && response.data.data) {
@@ -35,7 +34,6 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Auth check error:', error);
-        // Clear invalid token
         localStorage.removeItem('token');
         setUser(null);
       } finally {

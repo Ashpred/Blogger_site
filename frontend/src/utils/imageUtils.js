@@ -1,9 +1,4 @@
-/**
- * Ensures an image URL is properly formatted for display
- * 
- * @param {string} imageUrl - The image URL to fix
- * @returns {string} - The fixed image URL
- */
+
 export const fixImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
   

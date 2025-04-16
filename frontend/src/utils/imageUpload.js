@@ -1,10 +1,5 @@
 import axios from '../config/axios';
 
-/**
- * Uploads a profile picture to the server
- * @param {File} file - The image file to upload
- * @returns {Promise<string>} - A promise that resolves to the image URL
- */
 export const uploadProfilePicture = async (file) => {
   console.log('Starting profile picture upload', { fileSize: file.size, fileType: file.type });
   const formData = new FormData();
@@ -29,11 +24,6 @@ export const uploadProfilePicture = async (file) => {
   }
 };
 
-/**
- * Uploads a blog cover image to the server
- * @param {File} file - The image file to upload
- * @returns {Promise<string>} - A promise that resolves to the image URL
- */
 export const uploadBlogImage = async (file) => {
   console.log('Starting blog image upload', { fileSize: file.size, fileType: file.type });
   const formData = new FormData();
@@ -58,11 +48,6 @@ export const uploadBlogImage = async (file) => {
   }
 };
 
-/**
- * Uploads an inline content image for blog posts
- * @param {File} file - The image file to upload
- * @returns {Promise<string>} - A promise that resolves to the image URL
- */
 export const uploadContentImage = async (file) => {
   console.log('Starting content image upload', { fileSize: file.size, fileType: file.type });
   const formData = new FormData();

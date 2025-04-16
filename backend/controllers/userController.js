@@ -36,9 +36,7 @@ exports.getCurrentUser = async (req, res) => {
   }
 };
 
-// @desc   Get user by username
-// @route  GET /api/users/:username
-// @access Public
+
 exports.getUserByUsername = async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username });

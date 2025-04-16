@@ -31,7 +31,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
@@ -104,7 +103,6 @@ const Navbar = () => {
           </motion.div>
         </Link>
 
-        {/* Mobile menu button */}
         <motion.button 
           className="mobile-menu-button"
           onClick={toggleMobileMenu}
@@ -114,7 +112,6 @@ const Navbar = () => {
           <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
         </motion.button>
 
-        {/* Desktop menu */}
         <div className="desktop-menu">
           <Link to="/about" className="navbar-link">About Us</Link>
           
@@ -183,7 +180,6 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div 

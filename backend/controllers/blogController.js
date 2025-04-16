@@ -1,9 +1,7 @@
 const Blog = require('../models/Blog');
 const User = require('../models/User');
 
-// @desc   Create a new blog post
-// @route  POST /api/blogs
-// @access Private
+
 exports.createBlog = async (req, res) => {
   try {
     const { title, content, coverImage, tags } = req.body;
@@ -31,9 +29,6 @@ exports.createBlog = async (req, res) => {
   }
 };
 
-// @desc   Get all blog posts
-// @route  GET /api/blogs
-// @access Public
 exports.getBlogs = async (req, res) => {
   try {
     const blogs = await Blog.find()
@@ -56,9 +51,6 @@ exports.getBlogs = async (req, res) => {
   }
 };
 
-// @desc   Get single blog post
-// @route  GET /api/blogs/:id
-// @access Public
 exports.getBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id)
@@ -86,9 +78,6 @@ exports.getBlog = async (req, res) => {
   }
 };
 
-// @desc   Update blog post
-// @route  PUT /api/blogs/:id
-// @access Private
 exports.updateBlog = async (req, res) => {
   try {
     let blog = await Blog.findById(req.params.id);
@@ -128,9 +117,6 @@ exports.updateBlog = async (req, res) => {
   }
 };
 
-// @desc   Delete blog post
-// @route  DELETE /api/blogs/:id
-// @access Private
 exports.deleteBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -166,9 +152,6 @@ exports.deleteBlog = async (req, res) => {
   }
 };
 
-// @desc   Like/Unlike a blog post
-// @route  PUT /api/blogs/like/:id
-// @access Private
 exports.likeBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -208,9 +191,6 @@ exports.likeBlog = async (req, res) => {
   }
 };
 
-// @desc   Comment on a blog post
-// @route  POST /api/blogs/comment/:id
-// @access Private
 exports.commentOnBlog = async (req, res) => {
   try {
     const { text } = req.body;
@@ -251,9 +231,6 @@ exports.commentOnBlog = async (req, res) => {
   }
 };
 
-// @desc   Delete comment
-// @route  DELETE /api/blogs/comment/:id/:comment_id
-// @access Private
 exports.deleteComment = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -309,9 +286,6 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
-// @desc   Increment share count
-// @route  PUT /api/blogs/share/:id
-// @access Private
 exports.shareBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -342,13 +316,9 @@ exports.shareBlog = async (req, res) => {
   }
 };
 
-// @desc   Get popular blog posts
-// @route  GET /api/blogs/popular
-// @access Public
 exports.getPopularBlogs = async (req, res) => {
   try {
-    // Get popular blogs based on a combination of likes, comments, and shares
-    // Limit to 5 popular blogs
+    
     const blogs = await Blog.find()
       .sort({ likes: -1, shares: -1, 'comments.length': -1 })
       .limit(5)
