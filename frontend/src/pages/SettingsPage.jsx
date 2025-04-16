@@ -86,12 +86,20 @@ const SettingsPage = () => {
       return;
     }
 
+    console.log('File selected for upload:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
     // Show preview of image
     const reader = new FileReader();
     reader.onload = () => {
+      console.log('Image loaded as data URL');
       setProfileImage(reader.result);
     };
-    reader.onerror = () => {
+    reader.onerror = (error) => {
+      console.error('Error reading the image file:', error);
       setError('Error reading the image file.');
       showToast('Error reading the image file. Please try again.', 'error');
     };
@@ -108,6 +116,8 @@ const SettingsPage = () => {
     setError('');
     
     try {
+      console.log('Starting profile update with image:', profileImage ? 'Present' : 'Not present');
+      
       // Create formData for the multipart/form-data request
       const formData = new FormData();
       formData.append('fullName', profileForm.fullName);
@@ -115,33 +125,57 @@ const SettingsPage = () => {
 
       // Only append if there's a new image that's not already a URL
       if (profileImage && profileImage.startsWith('data:image')) {
+        console.log('New profile image detected, converting to blob');
         // Convert base64 to blob
         const response = await fetch(profileImage);
         const blob = await response.blob();
         formData.append('profilePicture', blob, 'profile-image.jpg');
+        console.log('Profile image blob added to form data');
+      } else if (profileImage) {
+        console.log('Using existing profile image URL:', profileImage.substring(0, 50) + '...');
       }
       
+      console.log('Sending profile update request to /api/users/profile');
       const updateResponse = await axios.put('/api/users/profile', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
+      console.log('Profile update response:', updateResponse.data);
+      
       if (!updateResponse.data.success) {
         throw new Error('Failed to update profile');
       }
+      
+      // Log the received profile picture URL
+      console.log('Received profile picture URL:', updateResponse.data.data.profilePicture);
+      
+      // Force a refresh of the profile image by adding a timestamp
+      const refreshedProfilePicture = updateResponse.data.data.profilePicture 
+        ? `${updateResponse.data.data.profilePicture}?t=${new Date().getTime()}`
+        : null;
+        
+      console.log('Setting refreshed profile picture:', refreshedProfilePicture);
       
       // Update user in auth context
       updateUser({
         ...user,
         fullName: profileForm.fullName,
         bio: profileForm.bio,
-        profilePicture: updateResponse.data.data.profilePicture
+        profilePicture: refreshedProfilePicture
       });
+      
+      // Also update the local state for immediate UI feedback
+      setProfileImage(refreshedProfilePicture);
       
       showToast('Profile settings saved successfully!', 'success');
     } catch (err) {
       console.error('Profile update error:', err);
+      if (err.response) {
+        console.error('Response data:', err.response.data);
+        console.error('Response status:', err.response.status);
+      }
       setError(err.response?.data?.message || 'Failed to update profile');
       showToast('Failed to update profile settings', 'error');
     } finally {
@@ -365,6 +399,7 @@ const SettingsPage = () => {
                     placeholder="Tell us about yourself"
                     rows="4"
                     maxLength="500"
+                    style={{ color: '#000000' }}
                   ></textarea>
                   <small className="input-help-text">{profileForm.bio.length}/500 characters</small>
                 </div>
@@ -423,6 +458,7 @@ const SettingsPage = () => {
                     value={accountForm.currentPassword}
                     onChange={handleAccountChange}
                     placeholder="Enter your current password"
+                    style={{ color: '#000000' }}
                   />
                 </div>
                 
@@ -434,7 +470,8 @@ const SettingsPage = () => {
                       name="newPassword"
                       value={accountForm.newPassword}
                       onChange={handleAccountChange}
-                    placeholder="Enter your new password"
+                      placeholder="Enter your new password"
+                      style={{ color: '#000000' }}
                     />
                   </div>
                   
@@ -446,7 +483,8 @@ const SettingsPage = () => {
                       name="confirmPassword"
                       value={accountForm.confirmPassword}
                       onChange={handleAccountChange}
-                    placeholder="Confirm your new password"
+                      placeholder="Confirm your new password"
+                      style={{ color: '#000000' }}
                     />
                 </div>
                 
@@ -467,20 +505,6 @@ const SettingsPage = () => {
                   ) : 'Update Password'}
                   </button>
               </form>
-              
-              <div className="delete-account-section">
-                  <h3>Danger Zone</h3>
-                <p>
-                  Permanently delete your account and all your data. This action cannot be undone.
-                </p>
-                <button 
-                  className="delete-account-button" 
-                  onClick={deleteAccount}
-                  disabled={saving}
-                >
-                  Delete Account
-                </button>
-              </div>
             </motion.div>
           )}
         </div>

@@ -18,7 +18,6 @@ const BlogDetailPage = () => {
   const [error, setError] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   
   // Fetch blog data
   useEffect(() => {
@@ -68,17 +67,6 @@ const BlogDetailPage = () => {
     } catch (err) {
       console.error('Error toggling like:', err);
     }
-  };
-  
-  const handleBookmarkToggle = () => {
-    setIsBookmarked(!isBookmarked);
-    // Here would be the API call to bookmark/unbookmark
-  };
-  
-  const handleShare = () => {
-    // Implement share functionality
-    navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!');
   };
   
   const handleCommentSubmit = async (e) => {
@@ -177,13 +165,9 @@ const BlogDetailPage = () => {
           <BlogMetrics 
             likes={blog.likes ? blog.likes.length : 0}
             comments={blog.comments ? blog.comments.length : 0}
-            shares={blog.shares || 0}
             isLiked={isLiked}
-            isBookmarked={isBookmarked}
             onLike={handleLikeToggle}
             onComment={() => document.getElementById('comments-section').scrollIntoView({ behavior: 'smooth' })}
-            onShare={handleShare}
-            onBookmark={handleBookmarkToggle}
           />
         </div>
         
@@ -198,6 +182,11 @@ const BlogDetailPage = () => {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               required
+              style={{ 
+                color: 'white', 
+                backgroundColor: '#eeeeee',
+                caretColor: '#FFFFFF' // This ensures the text cursor is visible
+              }}
             ></textarea>
             <button type="submit">Post Comment</button>
           </form>

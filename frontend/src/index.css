@@ -64,3 +64,11 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Ensure all text inputs have black text */
+input, 
+textarea, 
+select, 
+[contenteditable="true"] {
+  color: #000000 !important;
+}

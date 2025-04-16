@@ -12,11 +12,6 @@ import BlogDetailPage from './pages/BlogDetailPage'
 import SettingsPage from './pages/SettingsPage'
 import AboutPage from './pages/AboutPage'
 import ProfilePage from './pages/ProfilePage'
-import TestDirectionalEditor from './pages/TestDirectionalEditor'
-import TestImageEditor from './pages/TestImageEditor'
-import TestBasicEditor from './pages/TestBasicEditor'
-import BasicColorEditor from './pages/BasicColorEditor'
-import PlainTextEditor from './pages/PlainTextEditor'
 import Navbar from './components/Navbar'
 import LoadingSpinner from './components/LoadingSpinner'
 import './App.css'
@@ -87,26 +82,6 @@ function AppRoutes() {
         <Route 
           path="/settings" 
           element={user ? <SettingsPage /> : <Navigate to="/signin" />} 
-        />
-        <Route 
-          path="/test-directional-editor" 
-          element={user ? <TestDirectionalEditor /> : <Navigate to="/signin" />} 
-        />
-        <Route 
-          path="/test-image-editor" 
-          element={user ? <TestImageEditor /> : <Navigate to="/signin" />} 
-        />
-        <Route 
-          path="/test-basic-editor" 
-          element={<TestBasicEditor />} 
-        />
-        <Route 
-          path="/basic-color-editor" 
-          element={<BasicColorEditor />} 
-        />
-        <Route 
-          path="/plain-editor" 
-          element={<PlainTextEditor />}
         />
       </Routes>
     </Router>

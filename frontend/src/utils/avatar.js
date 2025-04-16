@@ -1,12 +1,4 @@
-/**
- * Utility functions for avatar handling
- */
 
-/**
- * Gets the avatar URL, handling both full URLs and relative paths
- * @param {string} avatarPath - The path or URL to the avatar image
- * @returns {string} The properly formatted URL for the avatar
- */
 export const getAvatarUrl = (avatarPath) => {
   if (!avatarPath) return ''; 
   

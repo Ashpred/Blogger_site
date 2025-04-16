@@ -1,9 +1,6 @@
 // Load environment variables from .env file before any other imports
 require('dotenv').config();
-console.log('Environment variables loaded:');
-console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing');
-console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing');
-console.log('CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing');
+
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -67,18 +64,6 @@ if (process.env.NODE_ENV === 'production') {
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API is available at http://localhost:${PORT}/api`);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Server running in DEVELOPMENT mode');
-  } else {
-    console.log('Server running in PRODUCTION mode');
-  }
-  
-  console.log('Cloudinary Config:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY ? 'API Key set' : 'API Key missing',
-    api_secret: process.env.CLOUDINARY_API_SECRET ? 'API Secret set' : 'API Secret missing'
-  });
 });
 
 // Handle unhandled promise rejections

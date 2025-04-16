@@ -75,12 +75,23 @@ exports.getUserByUsername = async (req, res) => {
 // @access Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { fullName, bio, profilePicture } = req.body;
+    console.log('Updating profile for user:', req.user._id);
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file ? 'Present' : 'Not present');
+    
+    const { fullName, bio } = req.body;
 
     const updateFields = {};
     if (fullName) updateFields.fullName = fullName;
     if (bio) updateFields.bio = bio;
-    if (profilePicture) updateFields.profilePicture = profilePicture;
+    
+    // If a file was uploaded, use the path provided by Cloudinary
+    if (req.file && req.file.path) {
+      console.log('New profile picture uploaded:', req.file.path);
+      updateFields.profilePicture = req.file.path;
+    }
+
+    console.log('Update fields being applied:', Object.keys(updateFields));
 
     const user = await User.findByIdAndUpdate(req.user._id, updateFields, {
       new: true,
@@ -88,11 +99,18 @@ exports.updateProfile = async (req, res) => {
     });
 
     if (!user) {
+      console.log('User not found for ID:', req.user._id);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
+
+    console.log('User updated successfully:', {
+      id: user._id,
+      username: user.username,
+      profilePicture: user.profilePicture ? 'Set' : 'Not set'
+    });
 
     res.status(200).json({
       success: true,
@@ -106,7 +124,7 @@ exports.updateProfile = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
+    console.error('Profile update error:', error);
     res.status(500).json({
       success: false,
       message: 'Server Error',

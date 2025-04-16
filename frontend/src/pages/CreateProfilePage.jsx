@@ -209,6 +209,7 @@ const CreateProfilePage = ({ onComplete }) => {
                 placeholder="Tell us a little about yourself"
                 rows={4}
                 maxLength={500}
+                style={{ color: '#000000' }}
               ></textarea>
               <small className="char-count">{formData.bio.length}/500 characters</small>
             </div>

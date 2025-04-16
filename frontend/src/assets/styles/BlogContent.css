@@ -12,12 +12,17 @@
 /* Blog Content Body - New class */
 .blog-content-body {
   max-width: 800px;
+  width: 100%;
   margin: 0 auto;
   padding: 20px 0;
   font-family: 'Arial', sans-serif;
   font-size: 18px;
   line-height: 1.8;
   color: #333;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .blog-content-body img {
@@ -90,8 +95,10 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .blog-content {
+  .blog-content,
+  .blog-content-body {
     font-size: 16px;
     padding: 15px 0;
+    width: 100%;
   }
 } 

@@ -77,7 +77,7 @@ const contentStorage = new CloudinaryStorage({
 // Create upload middleware with error handling
 const uploadProfilePicture = (req, res, next) => {
   console.log('Starting profile picture upload middleware');
-  multer({ storage: profileStorage }).single('file')(req, res, (err) => {
+  multer({ storage: profileStorage }).single('profilePicture')(req, res, (err) => {
     if (err) {
       console.error('Profile picture upload error:', err);
       return res.status(500).json({
@@ -88,13 +88,12 @@ const uploadProfilePicture = (req, res, next) => {
     }
     
     console.log('Profile picture processed by multer');
+    
+    // If no file was uploaded, continue without error
+    // This allows updating profile without changing picture
     if (!req.file) {
-      console.error('No file found in the request');
-      return res.status(400).json({
-        success: false,
-        message: 'No file uploaded',
-        error: 'File is missing in the request'
-      });
+      console.log('No profile picture file found in request, continuing with update');
+      return next();
     }
     
     console.log('File details:', {

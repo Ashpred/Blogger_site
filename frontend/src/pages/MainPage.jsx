@@ -11,7 +11,6 @@ const BlogCard = ({ blog }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(blog.likes?.length || 0);
   
   useEffect(() => {
@@ -43,26 +42,12 @@ const BlogCard = ({ blog }) => {
     }
   };
   
-  const handleBookmark = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
-    // Implement bookmark API call here
-  };
-  
   const handleComment = (e) => {
     e.preventDefault();
     e.stopPropagation();
     navigate(`/blog/${blog._id}`);
   };
   
-  const handleShare = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigator.clipboard.writeText(window.location.origin + `/blog/${blog._id}`);
-    alert('Link copied to clipboard!');
-  };
-
   const truncateText = (text, maxLength) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
@@ -117,13 +102,9 @@ const BlogCard = ({ blog }) => {
       <BlogMetrics 
         likes={likeCount}
         comments={blog.comments?.length || 0}
-        shares={blog.shares || 0}
         isLiked={isLiked}
-        isBookmarked={isBookmarked}
         onLike={handleLike}
         onComment={handleComment}
-        onShare={handleShare}
-        onBookmark={handleBookmark}
       />
     </motion.div>
   );

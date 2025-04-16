@@ -1,19 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from '../config/axios';
 import '../assets/styles/CreateBlogPage.css';
-import EnhancedEditor from '../components/EnhancedEditor';
 import { uploadBlogImage } from '../utils/imageUpload';
 import { fixImageUrl } from '../utils/imageUtils';
-import { FaBold, FaItalic, FaUnderline, FaAlignLeft, FaAlignCenter, 
-         FaAlignRight, FaListUl, FaListOl, FaLink, FaImage, 
-         FaHeading, FaQuoteRight } from 'react-icons/fa';
 
 const CreateBlogPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  const contentRef = useRef(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -43,11 +38,11 @@ const CreateBlogPage = () => {
     }
   };
 
-  // Handle content change from the BasicEditor
-  const handleContentChange = (html) => {
+  // Handle content change from textarea
+  const handleContentChange = (e) => {
     setFormData({
       ...formData,
-      content: html
+      content: e.target.value
     });
     
     if (errors.content) {
@@ -194,28 +189,6 @@ const CreateBlogPage = () => {
     }
   };
   
-  // Add a placeholder style to the head of the document
-  useEffect(() => {
-    // Create a style element for the placeholder
-    const style = document.createElement('style');
-    style.textContent = `
-      [contenteditable]:empty:before {
-        content: attr(data-placeholder);
-        color: #aaa;
-        font-style: italic;
-        pointer-events: none;
-        direction: rtl;
-        text-align: left;
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // Clean up on unmount
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-  
   return (
     <div className="create-blog-page">
       <motion.div 
@@ -240,23 +213,35 @@ const CreateBlogPage = () => {
               onChange={handleChange}
               placeholder="Enter an engaging title"
               className={errors.title ? 'error' : ''}
-              dir="rtl"
-              style={{ direction: 'rtl', textAlign: 'left' }}
+              style={{
+                color: '#000000'
+              }}
             />
             {errors.title && <p className="error-message">{errors.title}</p>}
           </div>
           
           <div className="form-group">
             <label htmlFor="content">Content</label>
-            <div style={{ width: '100%' }}>
-              <EnhancedEditor
-                initialContent={formData.content}
-                onChange={handleContentChange}
-                placeholder="Write your blog content here..."
-                className={errors.content ? 'error' : ''}
-                contentRef={contentRef}
-              />
-            </div>
+            <textarea
+              id="content"
+              name="content"
+              value={formData.content}
+              onChange={handleContentChange}
+              placeholder="Write your blog content here..."
+              className={errors.content ? 'error' : ''}
+              rows="10"
+              style={{
+                width: '100%',
+                padding: '1rem',
+                fontSize: '1rem',
+                lineHeight: '1.6',
+                borderRadius: '8px',
+                border: '1px solid #ddd',
+                outline: 'none',
+                resize: 'vertical',
+                color: '#000000'
+              }}
+            ></textarea>
             {errors.content && <p className="error-message">{errors.content}</p>}
           </div>
           
@@ -270,8 +255,9 @@ const CreateBlogPage = () => {
               onChange={handleChange}
               placeholder="technology, programming, web development"
               className={errors.tags ? 'error' : ''}
-              dir="rtl"
-              style={{ direction: 'rtl', textAlign: 'left' }}
+              style={{
+                color: '#000000'
+              }}
             />
             {errors.tags && <p className="error-message">{errors.tags}</p>}
           </div>
